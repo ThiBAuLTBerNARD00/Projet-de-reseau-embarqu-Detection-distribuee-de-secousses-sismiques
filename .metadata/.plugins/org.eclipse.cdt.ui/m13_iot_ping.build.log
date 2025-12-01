@@ -1,0 +1,10 @@
+20:54:05 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-size  m13_iot_ping.elf 
+   text	   data	    bss	    dec	    hex	filename
+ 111700	    460	  52940	 165100	  284ec	m13_iot_ping.elf
+Finished building: default.size.stdout
+ 
+
+20:54:08 Build Finished. 0 errors, 0 warnings. (took 2s.738ms)
+
