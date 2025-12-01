@@ -752,64 +752,60 @@ void StartHeartBeatTask(void const * argument)
 void StartBroadCast(void const * argument)
 {
   /* USER CODE BEGIN StartBroadCast */
-	  /* Infinite loop */
-	    struct udp_pcb *udp;
-	    struct pbuf *p;
+	/* Infinite loop */
+	struct udp_pcb *udp;
+	struct pbuf *p;
 
-	    const char *device_id = "nucleo-01";
-	    const char *my_ip = "192.168.128.50";   //
-	    uint16_t len=0;
-	    uint16_t err=0;
-	    ip_addr_t dest_ip;
+	const char *device_id = "nucleo-01";
+	const char *my_ip = "192.168.128.50";   //
+	uint16_t len=0;
+	uint16_t err=0;
+	ip_addr_t dest_ip;
 
-	    IP4_ADDR(&dest_ip, 169,254,255,255);       //
+	IP4_ADDR(&dest_ip, 169,254,255,255);       //
 
-	    // Attendre autorisation de la MasterTask
-	    osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
+	// Attendre autorisation de la MasterTask
+	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 
-	    log_message("Broadcast task started.\r\n");
+	log_message("Broadcast task started.\r\n");
 
-	    udp = udp_new();
-	    //udp_setflags(udp, UDP_FLAGS_BROADCAST);
-	    ip_set_option(udp, SOF_BROADCAST);
-	    printf("Flags netif: 0x%X\n", netif_default->flags);
-	    if (!udp) {
-	        log_message("UDP alloc failed!\r\n");
-	        vTaskDelete(NULL);
-	    }
-	    //err=udp_connect(udp, &dest_ip, 50000);
-	    udp_bind(udp, IP_ADDR_ANY, 0);     // port source aléatoire
+	udp = udp_new();
+	//udp_setflags(udp, UDP_FLAGS_BROADCAST);
+	ip_set_option(udp, SOF_BROADCAST);
+	printf("Flags netif: 0x%X\n", netif_default->flags);
+	if (!udp) {
+	   log_message("UDP alloc failed!\r\n");
+	   vTaskDelete(NULL);
+	}
+	//err=udp_connect(udp, &dest_ip, 50000);
+	udp_bind(udp, IP_ADDR_ANY, 0);     // port source aléatoire
 
-	    for(;;)
-	    {
-	        char json_msg[256];
-
-	        len=snprintf(json_msg, sizeof(json_msg),
-	        		"{"
-	        		   "\"type\":\"presence\","
-	        		   "\"id\":\"%s\","
-	        		   "\"ip\":\"%s\","
-	        		   "\"timestamp\":\"2025-10-02T08:20:00Z\""
-	        		 "}",
-	            device_id,
-	            my_ip//,
-	            //get_timestamp() // A faire avec la RTC //"\"timestamp\":\"%s\""
+	for(;;)
+	{
+	    char json_msg[256];
+        len=snprintf(json_msg, sizeof(json_msg),
+       		"{"
+      		   "\"type\":\"presence\","
+       		   "\"id\":\"%s\","
+       		   "\"ip\":\"%s\","
+       		   "\"timestamp\":\"2025-10-02T08:20:00Z\""
+       		 "}",
+			 device_id,
+	         my_ip//,
+	         //get_timestamp() // A faire avec la RTC //"\"timestamp\":\"%s\""
 	        );
 
 
-	        p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
-	        if (!p) continue;
+	     p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
+	     if (!p) continue;
+	     pbuf_take(p, json_msg, len);
+	     udp_sendto(udp, p, &dest_ip, 1234);
 
-	        pbuf_take(p, json_msg, len);
-
-	        udp_sendto(udp, p, &dest_ip, 1234);
-
-	        pbuf_free(p);
+	     pbuf_free(p);
 
 
-	        osDelay(10000);
-
-	    }
+	     osDelay(1000);
+	 }
   /* USER CODE END StartBroadCast */
 }
 

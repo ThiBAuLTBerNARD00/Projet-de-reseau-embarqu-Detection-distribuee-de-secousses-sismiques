@@ -15,7 +15,7 @@
 ../Core/Src/main.c:715:6:StartServerTask	1
 ../Core/Src/main.c:733:6:StartHeartBeatTask	1
 ../Core/Src/main.c:752:6:StartBroadCast	3
-../Core/Src/main.c:823:6:StartMasterTask	4
-../Core/Src/main.c:861:6:StartADCTask	1
-../Core/Src/main.c:880:6:HAL_TIM_PeriodElapsedCallback	2
-../Core/Src/main.c:898:6:Error_Handler	1
+../Core/Src/main.c:819:6:StartMasterTask	4
+../Core/Src/main.c:857:6:StartADCTask	1
+../Core/Src/main.c:876:6:HAL_TIM_PeriodElapsedCallback	2
+../Core/Src/main.c:894:6:Error_Handler	1
