@@ -1,16 +1,10 @@
-23:10:14 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+16:46:38 **** Incremental Build of configuration Debug for project m13_iot_ping ****
 make -j16 all 
-arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: m13_iot_ping.elf
- 
 arm-none-eabi-size  m13_iot_ping.elf 
-arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
    text	   data	    bss	    dec	    hex	filename
- 145532	    840	  54688	 201060	  31164	m13_iot_ping.elf
+ 145644	    840	 107936	 254420	  3e1d4	m13_iot_ping.elf
 Finished building: default.size.stdout
  
-Finished building: m13_iot_ping.list
- 
 
-23:10:18 Build Finished. 0 errors, 0 warnings. (took 4s.266ms)
+16:46:39 Build Finished. 0 errors, 0 warnings. (took 1s.503ms)
 
