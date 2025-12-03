@@ -759,3 +759,653 @@ Finished building: default.size.stdout
  
 Finished building: m13_iot_ping.list
  
+11:18:29 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../LWIP/App/lwip.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"LWIP/App/lwip.d" -MT"LWIP/App/lwip.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "LWIP/App/lwip.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:125:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  125 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:125:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  125 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:125:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:159:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  159 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:159:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:680:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  680 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:680:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:680:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:680:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:762:18: warning: unused variable 'err' [-Wunused-variable]
+  762 |         uint16_t err=0;
+      |                  ^~~
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 111716	    460	  52940	 165116	  284fc	m13_iot_ping.elf
+Finished building: default.size.stdout
+ 
+Finished building: m13_iot_ping.list
+ 
+11:22:55 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../LWIP/App/lwip.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"LWIP/App/lwip.d" -MT"LWIP/App/lwip.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "LWIP/App/lwip.o"
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 111716	    460	  52940	 165116	  284fc	m13_iot_ping.elf
+Finished building: default.size.stdout
+Finished building: m13_iot_ping.list
+ 
+ 
+21:49:55 **** Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:126:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  126 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:126:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  126 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:126:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:160:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  160 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:160:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:685:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  685 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:685:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:685:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:685:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:767:18: warning: unused variable 'err' [-Wunused-variable]
+  767 |         uint16_t err=0;
+      |                  ^~~
+../Core/Src/main.c: In function 'StartADCTask':
+../Core/Src/main.c:870:52: error: 'adc_buf' undeclared (first use in this function)
+  870 |           if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, ADC_BUF_LEN) != HAL_OK)
+      |                                                    ^~~~~~~
+../Core/Src/main.c:870:52: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:870:61: error: 'ADC_BUF_LEN' undeclared (first use in this function)
+  870 |           if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, ADC_BUF_LEN) != HAL_OK)
+      |                                                             ^~~~~~~~~~~
+make: *** [Core/Src/subdir.mk:40: Core/Src/main.o] Error 1
+"make -j16 all" terminated with exit code 2. Build might be incomplete.
+21:50:28 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:128:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  128 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:128:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  128 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:128:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:162:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  162 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:162:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:687:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  687 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:687:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:687:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:687:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:769:18: warning: unused variable 'err' [-Wunused-variable]
+  769 |         uint16_t err=0;
+      |                  ^~~
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 113136	    460	  53068	 166664	  28b08	m13_iot_ping.elf
+Finished building: default.size.stdout
+ 
+Finished building: m13_iot_ping.list
+ 
+22:20:36 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_hal_msp.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_hal_msp.d" -MT"Core/Src/stm32f7xx_hal_msp.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_hal_msp.o"
+arm-none-eabi-gcc "../Core/Src/stm32f7xx_it.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/stm32f7xx_it.d" -MT"Core/Src/stm32f7xx_it.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/stm32f7xx_it.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:130:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  130 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:130:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  130 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:130:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:164:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  164 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:164:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:711:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  711 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:711:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:711:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:711:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:793:18: warning: unused variable 'err' [-Wunused-variable]
+  793 |         uint16_t err=0;
+      |                  ^~~
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 114044	    460	  53324	 167828	  28f94	m13_iot_ping.elf
+Finished building: default.size.stdout
+ 
+Finished building: m13_iot_ping.list
+ 
+22:27:19 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:148:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:148:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:148:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:182:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  182 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:182:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:210:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:32:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   31 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:210:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:210:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:741:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  741 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:741:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:823:18: warning: unused variable 'err' [-Wunused-variable]
+  823 |         uint16_t err=0;
+      |                  ^~~
+../Core/Src/main.c: In function 'StartADCTask':
+../Core/Src/main.c:941:36: error: 'sumX' undeclared (first use in this function)
+  941 |                       float avgX = sumX / (float)SAMPLES;
+      |                                    ^~~~
+../Core/Src/main.c:941:36: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:942:36: error: 'sumY' undeclared (first use in this function)
+  942 |                       float avgY = sumY / (float)SAMPLES;
+      |                                    ^~~~
+../Core/Src/main.c:943:36: error: 'sumZ' undeclared (first use in this function)
+  943 |                       float avgZ = sumZ / (float)SAMPLES;
+      |                                    ^~~~
+make: *** [Core/Src/subdir.mk:40: Core/Src/main.o] Error 1
+"make -j16 all" terminated with exit code 2. Build might be incomplete.
+22:30:57 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:148:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:148:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:148:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:182:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  182 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:182:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:210:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:32:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   31 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:210:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:210:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:741:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  741 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:741:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:823:18: warning: unused variable 'err' [-Wunused-variable]
+  823 |         uint16_t err=0;
+      |                  ^~~
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 114936	    476	  54556	 169968	  297f0	m13_iot_ping.elf
+Finished building: default.size.stdout
+Finished building: m13_iot_ping.list
+ 
+ 
+22:55:37 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:148:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:148:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:148:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:182:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  182 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:182:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:210:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:32:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   31 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:210:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:210:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:741:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  741 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:741:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartServerTask':
+../Core/Src/main.c:781:32: error: storage size of 'addr' isn't known
+  781 |             struct sockaddr_in addr, client;
+      |                                ^~~~
+../Core/Src/main.c:781:38: error: storage size of 'client' isn't known
+  781 |             struct sockaddr_in addr, client;
+      |                                      ^~~~~~
+../Core/Src/main.c:782:13: error: unknown type name 'socklen_t'; did you mean 'locale_t'?
+  782 |             socklen_t client_len = sizeof(client);
+      |             ^~~~~~~~~
+      |             locale_t
+../Core/Src/main.c:788:20: warning: implicit declaration of function 'lwip_socket' [-Wimplicit-function-declaration]
+  788 |             sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+      |                    ^~~~~~~~~~~
+../Core/Src/main.c:788:32: error: 'AF_INET' undeclared (first use in this function)
+  788 |             sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+      |                                ^~~~~~~
+../Core/Src/main.c:788:32: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:788:41: error: 'SOCK_STREAM' undeclared (first use in this function)
+  788 |             sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+      |                                         ^~~~~~~~~~~
+In file included from ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h:41,
+                 from ../Middlewares/Third_Party/LwIP/src/include/lwip/etharp.h:50,
+                 from ../Middlewares/Third_Party/LwIP/src/include/netif/etharp.h:2,
+                 from ../LWIP/App/lwip.h:32,
+                 from ../Core/Src/main.c:22:
+../Core/Src/main.c:796:45: error: 'INADDR_ANY' undeclared (first use in this function); did you mean 'IPADDR_ANY'?
+  796 |             addr.sin_addr.s_addr = PP_HTONL(INADDR_ANY);
+      |                                             ^~~~~~~~~~
+../Middlewares/Third_Party/LwIP/src/include/lwip/def.h:110:25: note: in definition of macro 'PP_HTONL'
+  110 | #define PP_HTONL(x) ((((x) & (u32_t)0x000000ffUL) << 24) | \
+      |                         ^
+../Core/Src/main.c:798:17: warning: implicit declaration of function 'lwip_bind'; did you mean 'udp_bind'? [-Wimplicit-function-declaration]
+  798 |             if (lwip_bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+      |                 ^~~~~~~~~
+      |                 udp_bind
+../Core/Src/main.c:800:17: warning: implicit declaration of function 'lwip_close' [-Wimplicit-function-declaration]
+  800 |                 lwip_close(sock);
+      |                 ^~~~~~~~~~
+../Core/Src/main.c:804:13: warning: implicit declaration of function 'lwip_listen'; did you mean 'lwip_itoa'? [-Wimplicit-function-declaration]
+  804 |             lwip_listen(sock, 1);
+      |             ^~~~~~~~~~~
+      |             lwip_itoa
+../Core/Src/main.c:808:27: warning: implicit declaration of function 'lwip_accept' [-Wimplicit-function-declaration]
+  808 |                 newsock = lwip_accept(sock, (struct sockaddr *)&client, &client_len);
+      |                           ^~~~~~~~~~~
+../Core/Src/main.c:811:21: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
+  811 |                     memset(rxbuf, 0, sizeof(rxbuf));
+      |                     ^~~~~~
+../Core/Src/main.c:811:21: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:811:21: warning: incompatible implicit declaration of built-in function 'memset' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:811:21: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:812:21: warning: implicit declaration of function 'lwip_read' [-Wimplicit-function-declaration]
+  812 |                     lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
+      |                     ^~~~~~~~~
+../Core/Src/main.c:815:25: warning: implicit declaration of function 'strstr' [-Wimplicit-function-declaration]
+  815 |                     if (strstr(rxbuf, "\"type\":\"data_request\"")) {
+      |                         ^~~~~~
+../Core/Src/main.c:815:25: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/main.c:815:25: warning: incompatible implicit declaration of built-in function 'strstr' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:815:25: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/main.c:818:36: error: 'lastAccelX' undeclared (first use in this function)
+  818 |                         float ax = lastAccelX;
+      |                                    ^~~~~~~~~~
+../Core/Src/main.c:819:36: error: 'lastAccelY' undeclared (first use in this function)
+  819 |                         float ay = lastAccelY;
+      |                                    ^~~~~~~~~~
+../Core/Src/main.c:820:36: error: 'lastAccelZ' undeclared (first use in this function)
+  820 |                         float az = lastAccelZ;
+      |                                    ^~~~~~~~~~
+../Core/Src/main.c:837:25: warning: implicit declaration of function 'lwip_write' [-Wimplicit-function-declaration]
+  837 |                         lwip_write(newsock, txbuf, strlen(txbuf));
+      |                         ^~~~~~~~~~
+../Core/Src/main.c:837:52: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+  837 |                         lwip_write(newsock, txbuf, strlen(txbuf));
+      |                                                    ^~~~~~
+../Core/Src/main.c:837:52: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:781:38: warning: unused variable 'client' [-Wunused-variable]
+  781 |             struct sockaddr_in addr, client;
+      |                                      ^~~~~~
+../Core/Src/main.c:781:32: warning: unused variable 'addr' [-Wunused-variable]
+  781 |             struct sockaddr_in addr, client;
+      |                                ^~~~
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:884:18: warning: unused variable 'err' [-Wunused-variable]
+  884 |         uint16_t err=0;
+      |                  ^~~
+make: *** [Core/Src/subdir.mk:40: Core/Src/main.o] Error 1
+"make -j16 all" terminated with exit code 2. Build might be incomplete.
+22:58:28 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'ntp_receive':
+../Core/Src/main.c:148:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:32:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+   31 | #include <stdarg.h>
+  +++ |+#include <string.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:148:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  148 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/main.c:148:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'sync_rtc_with_ntp':
+../Core/Src/main.c:182:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+  182 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/main.c:182:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:210:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:32:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   31 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   32 | //#include "ethernetif.h
+../Core/Src/main.c:210:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  210 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:210:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:741:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  741 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:741:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:741:66: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c: In function 'StartServerTask':
+../Core/Src/main.c:781:28: error: storage size of 'addr' isn't known
+  781 |         struct sockaddr_in addr, client;
+      |                            ^~~~
+../Core/Src/main.c:781:34: error: storage size of 'client' isn't known
+  781 |         struct sockaddr_in addr, client;
+      |                                  ^~~~~~
+../Core/Src/main.c:782:9: error: unknown type name 'socklen_t'; did you mean 'locale_t'?
+  782 |         socklen_t client_len = sizeof(client);
+      |         ^~~~~~~~~
+      |         locale_t
+../Core/Src/main.c:788:16: warning: implicit declaration of function 'lwip_socket' [-Wimplicit-function-declaration]
+  788 |         sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+      |                ^~~~~~~~~~~
+../Core/Src/main.c:788:28: error: 'AF_INET' undeclared (first use in this function)
+  788 |         sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+      |                            ^~~~~~~
+../Core/Src/main.c:788:28: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:788:37: error: 'SOCK_STREAM' undeclared (first use in this function)
+  788 |         sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+      |                                     ^~~~~~~~~~~
+In file included from ../Middlewares/Third_Party/LwIP/src/include/lwip/ip4_addr.h:41,
+                 from ../Middlewares/Third_Party/LwIP/src/include/lwip/etharp.h:50,
+                 from ../Middlewares/Third_Party/LwIP/src/include/netif/etharp.h:2,
+                 from ../LWIP/App/lwip.h:32,
+                 from ../Core/Src/main.c:22:
+../Core/Src/main.c:796:41: error: 'INADDR_ANY' undeclared (first use in this function); did you mean 'IPADDR_ANY'?
+  796 |         addr.sin_addr.s_addr = PP_HTONL(INADDR_ANY);
+      |                                         ^~~~~~~~~~
+../Middlewares/Third_Party/LwIP/src/include/lwip/def.h:110:25: note: in definition of macro 'PP_HTONL'
+  110 | #define PP_HTONL(x) ((((x) & (u32_t)0x000000ffUL) << 24) | \
+      |                         ^
+../Core/Src/main.c:798:13: warning: implicit declaration of function 'lwip_bind'; did you mean 'udp_bind'? [-Wimplicit-function-declaration]
+  798 |         if (lwip_bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+      |             ^~~~~~~~~
+      |             udp_bind
+../Core/Src/main.c:800:13: warning: implicit declaration of function 'lwip_close' [-Wimplicit-function-declaration]
+  800 |             lwip_close(sock);
+      |             ^~~~~~~~~~
+../Core/Src/main.c:804:9: warning: implicit declaration of function 'lwip_listen'; did you mean 'lwip_itoa'? [-Wimplicit-function-declaration]
+  804 |         lwip_listen(sock, 1);
+      |         ^~~~~~~~~~~
+      |         lwip_itoa
+../Core/Src/main.c:808:22: warning: implicit declaration of function 'lwip_accept' [-Wimplicit-function-declaration]
+  808 |            newsock = lwip_accept(sock, (struct sockaddr *)&client, &client_len);
+      |                      ^~~~~~~~~~~
+../Core/Src/main.c:811:15: warning: implicit declaration of function 'memset' [-Wimplicit-function-declaration]
+  811 |               memset(rxbuf, 0, sizeof(rxbuf));
+      |               ^~~~~~
+../Core/Src/main.c:811:15: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:811:15: warning: incompatible implicit declaration of built-in function 'memset' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:811:15: note: include '<string.h>' or provide a declaration of 'memset'
+../Core/Src/main.c:812:15: warning: implicit declaration of function 'lwip_read' [-Wimplicit-function-declaration]
+  812 |               lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
+      |               ^~~~~~~~~
+../Core/Src/main.c:815:19: warning: implicit declaration of function 'strstr' [-Wimplicit-function-declaration]
+  815 |               if (strstr(rxbuf, "\"type\":\"data_request\"")) {
+      |                   ^~~~~~
+../Core/Src/main.c:815:19: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/main.c:815:19: warning: incompatible implicit declaration of built-in function 'strstr' [-Wbuiltin-declaration-mismatch]
+../Core/Src/main.c:815:19: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/main.c:818:29: error: 'lastAccelX' undeclared (first use in this function)
+  818 |                  float ax = lastAccelX;
+      |                             ^~~~~~~~~~
+../Core/Src/main.c:819:29: error: 'lastAccelY' undeclared (first use in this function)
+  819 |                  float ay = lastAccelY;
+      |                             ^~~~~~~~~~
+../Core/Src/main.c:820:29: error: 'lastAccelZ' undeclared (first use in this function)
+  820 |                  float az = lastAccelZ;
+      |                             ^~~~~~~~~~
+../Core/Src/main.c:839:25: warning: implicit declaration of function 'lwip_write' [-Wimplicit-function-declaration]
+  839 |                         lwip_write(newsock, txbuf, strlen(txbuf));
+      |                         ^~~~~~~~~~
+../Core/Src/main.c:839:52: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+  839 |                         lwip_write(newsock, txbuf, strlen(txbuf));
+      |                                                    ^~~~~~
+../Core/Src/main.c:839:52: note: include '<string.h>' or provide a declaration of 'strlen'
+../Core/Src/main.c:781:34: warning: unused variable 'client' [-Wunused-variable]
+  781 |         struct sockaddr_in addr, client;
+      |                                  ^~~~~~
+../Core/Src/main.c:781:28: warning: unused variable 'addr' [-Wunused-variable]
+  781 |         struct sockaddr_in addr, client;
+      |                            ^~~~
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:886:18: warning: unused variable 'err' [-Wunused-variable]
+  886 |         uint16_t err=0;
+      |                  ^~~
+make: *** [Core/Src/subdir.mk:40: Core/Src/main.o] Error 1
+"make -j16 all" terminated with exit code 2. Build might be incomplete.
+23:00:09 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:211:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  211 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:33:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   32 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   33 | //#include "ethernetif.h
+../Core/Src/main.c:211:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  211 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:211:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'StartServerTask':
+../Core/Src/main.c:819:29: error: 'lastAccelX' undeclared (first use in this function)
+  819 |                  float ax = lastAccelX;
+      |                             ^~~~~~~~~~
+../Core/Src/main.c:819:29: note: each undeclared identifier is reported only once for each function it appears in
+../Core/Src/main.c:820:29: error: 'lastAccelY' undeclared (first use in this function)
+  820 |                  float ay = lastAccelY;
+      |                             ^~~~~~~~~~
+../Core/Src/main.c:821:29: error: 'lastAccelZ' undeclared (first use in this function)
+  821 |                  float az = lastAccelZ;
+      |                             ^~~~~~~~~~
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:887:18: warning: unused variable 'err' [-Wunused-variable]
+  887 |         uint16_t err=0;
+      |                  ^~~
+make: *** [Core/Src/subdir.mk:40: Core/Src/main.o] Error 1
+"make -j16 all" terminated with exit code 2. Build might be incomplete.
+23:07:44 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:211:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  211 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:33:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   32 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   33 | //#include "ethernetif.h
+../Core/Src/main.c:211:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  211 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:211:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'StartServerTask':
+../Core/Src/main.c:820:29: error: incompatible types when initializing type 'float' using type 'float *'
+  820 |                  float ay = rmsBufY;
+      |                             ^~~~~~~
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:887:18: warning: unused variable 'err' [-Wunused-variable]
+  887 |         uint16_t err=0;
+      |                  ^~~
+make: *** [Core/Src/subdir.mk:40: Core/Src/main.o] Error 1
+"make -j16 all" terminated with exit code 2. Build might be incomplete.
+23:07:52 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'computeRMS':
+../Core/Src/main.c:211:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+  211 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:33:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+   32 | #include <stdarg.h>
+  +++ |+#include <math.h>
+   33 | //#include "ethernetif.h
+../Core/Src/main.c:211:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+  211 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/main.c:211:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/main.c: In function 'StartBroadCast':
+../Core/Src/main.c:887:18: warning: unused variable 'err' [-Wunused-variable]
+  887 |         uint16_t err=0;
+      |                  ^~~
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 138772	    476	  54684	 193932	  2f58c	m13_iot_ping.elf
+Finished building: default.size.stdout
+ 
+Finished building: m13_iot_ping.list
+ 
+23:10:14 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+make -j16 all 
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
+arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
+   text	   data	    bss	    dec	    hex	filename
+ 145532	    840	  54688	 201060	  31164	m13_iot_ping.elf
+Finished building: default.size.stdout
+ 
+Finished building: m13_iot_ping.list
+ 

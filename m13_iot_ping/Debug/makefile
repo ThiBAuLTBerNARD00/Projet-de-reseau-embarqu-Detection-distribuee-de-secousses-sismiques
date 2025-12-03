@@ -76,7 +76,7 @@ main-build: m13_iot_ping.elf secondary-outputs
 
 # Tool invocations
 m13_iot_ping.elf m13_iot_ping.map: $(OBJS) $(USER_OBJS) C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+	arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

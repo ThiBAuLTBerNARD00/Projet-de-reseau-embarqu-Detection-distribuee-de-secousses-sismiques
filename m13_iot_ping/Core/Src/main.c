@@ -28,6 +28,7 @@
 #include "lwip/udp.h"
 #include "lwip/dns.h"
 #include "lwip/timeouts.h"
+#include "lwip/sockets.h"
 #include <stdarg.h>
 //#include "ethernetif.h
 /* USER CODE END Includes */
@@ -68,12 +69,35 @@ osThreadId ADCTaskHandle;
 osMessageQId messageQueueHandle;
 osMutexId uartMutexHandle;
 osSemaphoreId SemaphoreMasterHandle;
+osSemaphoreId adcSemaphoreHandle;
 /* USER CODE BEGIN PV */
 #define MAX_MSG_LEN 128
 #define NTP_SERVER "pool.ntp.org"
 #define NTP_PORT 123
 #define NTP_TIMESTAMP_DELTA 2208988800UL // Différence entre 1900 et 1970
+#define AXIS_COUNT     3
+#define SAMPLES        64
+#define ADC_BUF_LEN    (AXIS_COUNT * SAMPLES)
+#define SAMPLE_RATE     100     // 100 Hz
+#define RMS_WINDOW      SAMPLE_RATE   // 1 seconde = 100 échantillons
+#define MA_WINDOW       10            // moyenne glissante 100 ms
+static uint16_t adc_buf[ADC_BUF_LEN];
+// Buffer circulaire pour RMS
+static float rmsBufX[RMS_WINDOW];
+static float rmsBufY[RMS_WINDOW];
+static float rmsBufZ[RMS_WINDOW];
+static uint16_t rmsIndex = 0;
+static uint8_t rmsFilled = 0;
 
+// Valeurs filtrées
+static float maX = 0, maY = 0, maZ = 0;
+static float rmsX = 0, rmsY = 0, rmsZ = 0;
+
+// Baseline RMS (ambiance)
+static float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
+
+// Seuil de détection (à ajuster selon ton capteur)
+static float threshold = 0.05f;   // RMS au-dessus = secousse
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -172,8 +196,20 @@ void sync_rtc_with_ntp() {
 		log_message("Device is not ready!\r\n");
 	}
 }
+float movingAverage(float previous, float newSample)
+{
+    const float alpha = 1.0f / MA_WINDOW;  // poids 10%
+    return previous + alpha * (newSample - previous);
+}
 
+float computeRMS(float *buffer, uint16_t len)
+{
+    float sumSq = 0;
+    for (uint16_t i = 0; i < len; i++)
+        sumSq += buffer[i] * buffer[i];
 
+    return sqrtf(sumSq / len);
+}
 /* USER CODE END 0 */
 
 /**
@@ -227,6 +263,10 @@ int main(void)
   /* definition and creation of SemaphoreMaster */
   osSemaphoreDef(SemaphoreMaster);
   SemaphoreMasterHandle = osSemaphoreCreate(osSemaphore(SemaphoreMaster), 1);
+
+  /* definition and creation of adcSemaphore */
+  osSemaphoreDef(adcSemaphore);
+  adcSemaphoreHandle = osSemaphoreCreate(osSemaphore(adcSemaphore), 1);
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
@@ -369,13 +409,13 @@ static void MX_ADC1_Init(void)
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
   hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T2_TRGO;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfConversion = 3;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
@@ -388,6 +428,24 @@ static void MX_ADC1_Init(void)
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_3;
+  sConfig.Rank = ADC_REGULAR_RANK_2;
+  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
+  */
+  sConfig.Channel = ADC_CHANNEL_4;
+  sConfig.Rank = ADC_REGULAR_RANK_3;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -480,9 +538,9 @@ static void MX_TIM2_Init(void)
 
   /* USER CODE END TIM2_Init 1 */
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 0;
+  htim2.Init.Prescaler = 9600-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 4294967295;
+  htim2.Init.Period = 100-1;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -494,7 +552,7 @@ static void MX_TIM2_Init(void)
   {
     Error_Handler();
   }
-  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_UPDATE;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   if (HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig) != HAL_OK)
   {
@@ -629,7 +687,11 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+    if(hadc->Instance == ADC1)
+        osSemaphoreRelease(adcSemaphoreHandle);
+}
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -716,10 +778,73 @@ void StartServerTask(void const * argument)
 {
   /* USER CODE BEGIN StartServerTask */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	int sock, newsock;
+	struct sockaddr_in addr, client;
+	socklen_t client_len = sizeof(client);
+
+	char rxbuf[256];
+	char txbuf[256];
+
+	    // ----- Create TCP socket -----
+	sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
+	if (sock < 0) {
+	    printf("Server socket error\n");
+	    vTaskDelete(NULL);
+	}
+
+	addr.sin_family = AF_INET;
+	addr.sin_port = PP_HTONS(5000);
+	addr.sin_addr.s_addr = PP_HTONL(INADDR_ANY);
+
+	if (lwip_bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
+	    printf("Bind failed\n");
+	    lwip_close(sock);
+	    vTaskDelete(NULL);
+	}
+
+	lwip_listen(sock, 1);
+	printf("TCP server listening on port 5000\n");
+
+	while (1) {
+	   newsock = lwip_accept(sock, (struct sockaddr *)&client, &client_len);
+
+	   if (newsock >= 0) {
+	      memset(rxbuf, 0, sizeof(rxbuf));
+	      lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
+
+	      // ---- Check if it's a data request ----
+	      if (strstr(rxbuf, "\"type\":\"data_request\"")) {
+
+	      // Example: read acceleration values from global variables
+	         float ax = rmsX;
+	         float ay = rmsY;
+	         float az = rmsZ;
+
+	          snprintf(txbuf, sizeof(txbuf),
+	                    "{"
+	                        "\"type\":\"data_response\","
+	                       "\"id\":\"nucleo-01\","
+	                        "\"timestamp\":\"2025-10-02T08:21:01Z\","
+	                        "\"acceleration\":{"
+	                            "\"x\":%.3f,"
+	                            "\"y\":%.3f,"
+	                            "\"z\":%.3f"
+	                        "},"
+	                        "\"status\":\"normal\""
+	                    "}",
+	                    ax,
+						ay,
+						az
+	                );
+
+	                lwip_write(newsock, txbuf, strlen(txbuf));
+	            }
+
+	            lwip_close(newsock);
+	        }
+
+	        osDelay(10);
+	    }
   /* USER CODE END StartServerTask */
 }
 
@@ -757,12 +882,12 @@ void StartBroadCast(void const * argument)
 	struct pbuf *p;
 
 	const char *device_id = "nucleo-01";
-	const char *my_ip = "192.168.128.50";   //
+	const char *my_ip = "192.168.128.155";   //
 	uint16_t len=0;
 	uint16_t err=0;
 	ip_addr_t dest_ip;
 
-	IP4_ADDR(&dest_ip, 169,254,255,255);       //
+	IP4_ADDR(&dest_ip, 192,168,1,255);       //
 
 	// Attendre autorisation de la MasterTask
 	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
@@ -857,11 +982,106 @@ void StartMasterTask(void const * argument)
 void StartADCTask(void const * argument)
 {
   /* USER CODE BEGIN StartADCTask */
-  /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	// Attendre que le MasterTask donne l'autorisation (tu utilises déjà SemaphoreMasterHandle)
+	  osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
+
+	  uint32_t sumX = 0;
+	  uint32_t sumY = 0;
+	  uint32_t sumZ = 0;
+
+
+	  // Démarrer le timer si tu veux trig ADC par timer (ici on lance en mode software continous DMA)
+	  // Démarrer ADC en DMA (circular)
+	  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, ADC_BUF_LEN) != HAL_OK)
+	  {
+	    log_message("ADC DMA start failed!\r\n");
+	    vTaskDelete(NULL);
+	  }
+	  else
+	  {
+	    log_message("ADC DMA started (len=%d)\r\n", ADC_BUF_LEN);
+	  }
+
+	  for(;;)
+	  {
+		  if (osSemaphoreWait(adcSemaphoreHandle, 1000) == osOK)
+		  {
+			  for (uint32_t i = 0; i < SAMPLES; i++)
+			  {
+			     sumX += adc_buf[i * 3 + 0];
+			     sumY += adc_buf[i * 3 + 1];
+			     sumZ += adc_buf[i * 3 + 2];
+			  }
+		      // 1) Moyenne des 64 échantillons DMA
+		      float avgX = sumX / (float)SAMPLES;
+		      float avgY = sumY / (float)SAMPLES;
+		      float avgZ = sumZ / (float)SAMPLES;
+
+		      // Conversion -> tensions -> acceleration
+		      float ax = (3.3f * avgX / 4095.0f) - 1.65f;  // centrage
+		      float ay = (3.3f * avgY / 4095.0f) - 1.65f;
+		      float az = (3.3f * avgZ / 4095.0f) - 1.65f;
+
+		      // --------------------------------------------------------
+		      // 2) MOYENNE GLISSANTE
+		      // --------------------------------------------------------
+		      maX = movingAverage(maX, ax);
+		      maY = movingAverage(maY, ay);
+		      maZ = movingAverage(maZ, az);
+
+		      // --------------------------------------------------------
+		      // 3) RMS SUR 1 SECONDE (100 échantillons)
+		      // --------------------------------------------------------
+		      rmsBufX[rmsIndex] = ax;
+		      rmsBufY[rmsIndex] = ay;
+		      rmsBufZ[rmsIndex] = az;
+
+		      rmsIndex++;
+		      if (rmsIndex >= RMS_WINDOW)
+		      {
+		          rmsIndex = 0;
+		          rmsFilled = 1;  // indique que la fenêtre est pleine
+		      }
+
+		      if (rmsFilled)
+		      {
+		          rmsX = computeRMS(rmsBufX, RMS_WINDOW);
+		          rmsY = computeRMS(rmsBufY, RMS_WINDOW);
+		          rmsZ = computeRMS(rmsBufZ, RMS_WINDOW);
+
+		          // --------------------------------------------------------
+		          // 4) DÉTECTION DE SECOUSSE
+		          // --------------------------------------------------------
+		          float ampX = rmsX - baselineX;
+		          float ampY = rmsY - baselineY;
+		          float ampZ = rmsZ - baselineZ;
+
+		          bool event =
+		              (ampX > threshold) ||
+		              (ampY > threshold) ||
+		              (ampZ > threshold);
+
+		          if (event)
+		          {
+		              log_message(
+		                  "SECOUSSE !  Amp: X=%.3f  Y=%.3f  Z=%.3f  (RMS X=%.3f Y=%.3f Z=%.3f)\r\n",
+		                  ampX, ampY, ampZ, rmsX, rmsY, rmsZ
+		              );
+		          }
+		          else
+		          {
+		              log_message(
+		                  "Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",
+		                  rmsX, rmsY, rmsZ
+		              );
+		          }
+		      }
+		  }
+
+
+	    osDelay(10); // laisse un peu de place pour scheduler
+	  }
+
   /* USER CODE END StartADCTask */
 }
 
