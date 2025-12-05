@@ -15,7 +15,7 @@
 ../Core/Src/main.c:711:6:StartDefaultTask	2
 ../Core/Src/main.c:737:6:LogMessageTask	2
 ../Core/Src/main.c:766:6:StartClientTask	1
-../Core/Src/main.c:784:6:StartServerTask	6
+../Core/Src/main.c:784:6:StartServerTask	5
 ../Core/Src/main.c:868:6:StartHeartBeatTask	1
 ../Core/Src/main.c:887:6:StartBroadCast	3
 ../Core/Src/main.c:954:6:StartMasterTask	4

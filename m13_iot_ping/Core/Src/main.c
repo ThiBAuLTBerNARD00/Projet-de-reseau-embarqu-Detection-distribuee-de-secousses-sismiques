@@ -299,7 +299,7 @@ int main(void)
   clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
 
   /* definition and creation of serverTask */
-  osThreadDef(serverTask, StartServerTask, osPriorityBelowNormal, 0, 1024);
+  osThreadDef(serverTask, StartServerTask, osPriorityNormal, 0, 4096);
   serverTaskHandle = osThreadCreate(osThread(serverTask), NULL);
 
   /* definition and creation of heartBeatTask */
@@ -307,7 +307,7 @@ int main(void)
   heartBeatTaskHandle = osThreadCreate(osThread(heartBeatTask), NULL);
 
   /* definition and creation of BroardCast */
-  osThreadDef(BroardCast, StartBroadCast, osPriorityBelowNormal, 0, 4096);
+  /*osThreadDef(BroardCast, StartBroadCast, osPriorityBelowNormal, 0, 4096);
   BroardCastHandle = osThreadCreate(osThread(BroardCast), NULL);
 
   /* definition and creation of MasterTask */
@@ -801,7 +801,7 @@ void StartServerTask(void const * argument)
 	}
 
 	addr.sin_family = AF_INET;
-	addr.sin_port = PP_HTONS(5000);
+	addr.sin_port = PP_HTONS(12345);
 	addr.sin_addr.s_addr = PP_HTONL(INADDR_ANY);
 
 	if (lwip_bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
@@ -811,7 +811,7 @@ void StartServerTask(void const * argument)
 	}
 
 	lwip_listen(sock, 1);
-	printf("TCP server listening on port 5000\n");
+	log_message("TCP server listening on port 12345\n");
 
 	while (1) {
 	   newsock = lwip_accept(sock, (struct sockaddr *)&client, &client_len);
@@ -821,40 +821,40 @@ void StartServerTask(void const * argument)
 	      err=lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
 	      if(err>0){
 	    	  // ---- Check if it's a data request ----
-	    	  	      if (strstr(rxbuf, "\"type\":\"data_request\"")) {
+	    	  if (strstr(rxbuf, "\"type\":\"data_request\"")) {
 
-	    	  	      // Example: read acceleration values from global variables
-	    	  	         float ax = rmsX;
-	    	  	         float ay = rmsY;
-	    	  	         float az = rmsZ;
+	    		  // Example: read acceleration values from global variables
+	    	  	  float ax = rmsX;
+	    	  	  float ay = rmsY;
+	    	  	  float az = rmsZ;
 
-	    	  	          snprintf(txbuf, sizeof(txbuf),
-	    	  	                    "{"
-	    	  	                        "\"type\":\"data_response\","
-	    	  	                       "\"id\":\"nucleo-01\","
-	    	  	                        "\"timestamp\":\"2025-10-02T08:21:01Z\","
-	    	  	                        "\"acceleration\":{"
-	    	  	                            "\"x\":%.3f,"
-	    	  	                            "\"y\":%.3f,"
-	    	  	                            "\"z\":%.3f"
-	    	  	                        "},"
-	    	  	                        "\"status\":\"normal\""
-	    	  	                    "}",
-	    	  	                    ax,
-	    	  						ay,
-	    	  						az
-	    	  	                );
+	    	  	  snprintf(txbuf, sizeof(txbuf),
+	    	  	                "{"
+	    	  	                   "\"type\":\"data_response\","
+	    	  	                   "\"id\":\"nucleo-01\","
+	    	  	                   "\"timestamp\":\"2025-10-02T08:21:01Z\","
+	    	  	                   "\"acceleration\":{"
+	    	  	                        "\"x\":%.3f,"
+	    	  	                        "\"y\":%.3f,"
+	    	  	                        "\"z\":%.3f"
+	    	  	                    "},"
+	    	  	                   "\"status\":\"normal\""
+	    	  	                 "}",
+	    	  	                ax,
+	    	  					ay,
+	    	  					az
+	    	  	           );
 
-	    	  	                lwip_write(newsock, txbuf, strlen(txbuf));
-	    	  	            }
+	    	  	    lwip_write(newsock, txbuf, strlen(txbuf));
+	    	  }
 	      }
 
 
-	            lwip_close(newsock);
-	        }
-
-	        osDelay(10);
+	     lwip_close(newsock);
 	    }
+
+	   osDelay(10);
+	}
   /* USER CODE END StartServerTask */
 }
 

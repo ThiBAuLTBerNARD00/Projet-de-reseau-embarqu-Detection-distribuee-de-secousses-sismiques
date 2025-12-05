@@ -3,8 +3,10 @@ import json
 def send_json_message(ip, port, message):
   try:
    with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as sock:
-    sock.settimeout(2)
+    print(f"Tentative de connexion vers {ip}:{port} ...")
+    sock.settimeout(1000)
     sock.connect((ip, port))
+    print("Connecté !")
     sock.sendall(json.dumps(message).encode('utf-8'))
     print(f"Message envoyé : {json.dumps(message, indent=2)}")
     try:
@@ -44,7 +46,7 @@ def build_message(msg_type):
     }
  elif msg_type == "data":
    return {
-      "type": "data",
+      "type": "data_request",
         "payload": {
            "temperature": 23.5,
             "humidity": 45.2,
