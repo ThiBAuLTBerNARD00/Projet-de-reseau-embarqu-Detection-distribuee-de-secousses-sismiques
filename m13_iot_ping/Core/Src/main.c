@@ -278,7 +278,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* definition and creation of messageQueue */
-  osMessageQDef(messageQueue, 16, uint32_t);
+  osMessageQDef(messageQueue, 64, uint32_t);
   messageQueueHandle = osMessageCreate(osMessageQ(messageQueue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -287,35 +287,35 @@ int main(void)
 
   /* Create the thread(s) */
   /* definition and creation of defaultTask */
-  osThreadDef(defaultTask, StartDefaultTask, osPriorityNormal, 0, 256);
+  osThreadDef(defaultTask, StartDefaultTask, osPriorityHigh, 0, 1024);
   defaultTaskHandle = osThreadCreate(osThread(defaultTask), NULL);
 
   /* definition and creation of logMessageTask */
-  osThreadDef(logMessageTask, LogMessageTask, osPriorityNormal, 0, 256);
+  osThreadDef(logMessageTask, LogMessageTask, osPriorityAboveNormal, 0, 1024);
   logMessageTaskHandle = osThreadCreate(osThread(logMessageTask), NULL);
 
   /* definition and creation of clientTask */
-  osThreadDef(clientTask, StartClientTask, osPriorityBelowNormal, 0, 256);
+  osThreadDef(clientTask, StartClientTask, osPriorityBelowNormal, 0, 1024);
   clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
 
   /* definition and creation of serverTask */
-  osThreadDef(serverTask, StartServerTask, osPriorityBelowNormal, 0, 256);
+  osThreadDef(serverTask, StartServerTask, osPriorityBelowNormal, 0, 1024);
   serverTaskHandle = osThreadCreate(osThread(serverTask), NULL);
 
   /* definition and creation of heartBeatTask */
-  osThreadDef(heartBeatTask, StartHeartBeatTask, osPriorityIdle, 0, 256);
+  osThreadDef(heartBeatTask, StartHeartBeatTask, osPriorityIdle, 0, 1024);
   heartBeatTaskHandle = osThreadCreate(osThread(heartBeatTask), NULL);
 
   /* definition and creation of BroardCast */
-  osThreadDef(BroardCast, StartBroadCast, osPriorityIdle, 0, 256);
+  osThreadDef(BroardCast, StartBroadCast, osPriorityBelowNormal, 0, 4096);
   BroardCastHandle = osThreadCreate(osThread(BroardCast), NULL);
 
   /* definition and creation of MasterTask */
-  osThreadDef(MasterTask, StartMasterTask, osPriorityIdle, 0, 256);
+  osThreadDef(MasterTask, StartMasterTask, osPriorityIdle, 0, 1024);
   MasterTaskHandle = osThreadCreate(osThread(MasterTask), NULL);
 
   /* definition and creation of ADCTask */
-  osThreadDef(ADCTask, StartADCTask, osPriorityIdle, 0, 256);
+  osThreadDef(ADCTask, StartADCTask, osPriorityIdle, 0, 1024);
   ADCTaskHandle = osThreadCreate(osThread(ADCTask), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
@@ -350,7 +350,7 @@ void SystemClock_Config(void)
   /** Configure the main internal regulator output voltage
   */
   __HAL_RCC_PWR_CLK_ENABLE();
-  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE3);
+  __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -361,12 +361,19 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSI;
-  RCC_OscInitStruct.PLL.PLLM = 16;
-  RCC_OscInitStruct.PLL.PLLN = 192;
-  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV4;
+  RCC_OscInitStruct.PLL.PLLM = 8;
+  RCC_OscInitStruct.PLL.PLLN = 216;
+  RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 2;
   RCC_OscInitStruct.PLL.PLLR = 2;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Activate the Over-Drive mode
+  */
+  if (HAL_PWREx_EnableOverDrive() != HAL_OK)
   {
     Error_Handler();
   }
@@ -380,7 +387,7 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_1) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_7) != HAL_OK)
   {
     Error_Handler();
   }
@@ -407,7 +414,7 @@ static void MX_ADC1_Init(void)
   /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
@@ -779,6 +786,7 @@ void StartServerTask(void const * argument)
   /* USER CODE BEGIN StartServerTask */
   /* Infinite loop */
 	int sock, newsock;
+	uint8_t err=0;
 	struct sockaddr_in addr, client;
 	socklen_t client_len = sizeof(client);
 
@@ -810,35 +818,37 @@ void StartServerTask(void const * argument)
 
 	   if (newsock >= 0) {
 	      memset(rxbuf, 0, sizeof(rxbuf));
-	      lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
+	      err=lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
+	      if(err>0){
+	    	  // ---- Check if it's a data request ----
+	    	  	      if (strstr(rxbuf, "\"type\":\"data_request\"")) {
 
-	      // ---- Check if it's a data request ----
-	      if (strstr(rxbuf, "\"type\":\"data_request\"")) {
+	    	  	      // Example: read acceleration values from global variables
+	    	  	         float ax = rmsX;
+	    	  	         float ay = rmsY;
+	    	  	         float az = rmsZ;
 
-	      // Example: read acceleration values from global variables
-	         float ax = rmsX;
-	         float ay = rmsY;
-	         float az = rmsZ;
+	    	  	          snprintf(txbuf, sizeof(txbuf),
+	    	  	                    "{"
+	    	  	                        "\"type\":\"data_response\","
+	    	  	                       "\"id\":\"nucleo-01\","
+	    	  	                        "\"timestamp\":\"2025-10-02T08:21:01Z\","
+	    	  	                        "\"acceleration\":{"
+	    	  	                            "\"x\":%.3f,"
+	    	  	                            "\"y\":%.3f,"
+	    	  	                            "\"z\":%.3f"
+	    	  	                        "},"
+	    	  	                        "\"status\":\"normal\""
+	    	  	                    "}",
+	    	  	                    ax,
+	    	  						ay,
+	    	  						az
+	    	  	                );
 
-	          snprintf(txbuf, sizeof(txbuf),
-	                    "{"
-	                        "\"type\":\"data_response\","
-	                       "\"id\":\"nucleo-01\","
-	                        "\"timestamp\":\"2025-10-02T08:21:01Z\","
-	                        "\"acceleration\":{"
-	                            "\"x\":%.3f,"
-	                            "\"y\":%.3f,"
-	                            "\"z\":%.3f"
-	                        "},"
-	                        "\"status\":\"normal\""
-	                    "}",
-	                    ax,
-						ay,
-						az
-	                );
+	    	  	                lwip_write(newsock, txbuf, strlen(txbuf));
+	    	  	            }
+	      }
 
-	                lwip_write(newsock, txbuf, strlen(txbuf));
-	            }
 
 	            lwip_close(newsock);
 	        }
@@ -929,7 +939,7 @@ void StartBroadCast(void const * argument)
 	     pbuf_free(p);
 
 
-	     osDelay(1000);
+	     osDelay(10000);
 	 }
   /* USER CODE END StartBroadCast */
 }
@@ -989,7 +999,15 @@ void StartADCTask(void const * argument)
 	  uint32_t sumY = 0;
 	  uint32_t sumZ = 0;
 
-
+	  if (HAL_TIM_Base_Start(&htim2) != HAL_OK)
+	  	{
+	  	    log_message("ERROR: TIM2 start failed!\r\n");
+	  	    vTaskDelete(NULL);
+	  	}
+	  	else
+	  	{
+	  	    log_message("TIM2 started.\r\n");
+	  	}
 	  // Démarrer le timer si tu veux trig ADC par timer (ici on lance en mode software continous DMA)
 	  // Démarrer ADC en DMA (circular)
 	  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, ADC_BUF_LEN) != HAL_OK)
@@ -1004,8 +1022,8 @@ void StartADCTask(void const * argument)
 
 	  for(;;)
 	  {
-		  if (osSemaphoreWait(adcSemaphoreHandle, 1000) == osOK)
-		  {
+		  //if (osSemaphoreWait(adcSemaphoreHandle, 1000) == osOK)
+		  //{
 			  for (uint32_t i = 0; i < SAMPLES; i++)
 			  {
 			     sumX += adc_buf[i * 3 + 0];
@@ -1063,20 +1081,14 @@ void StartADCTask(void const * argument)
 
 		          if (event)
 		          {
-		              log_message(
-		                  "SECOUSSE !  Amp: X=%.3f  Y=%.3f  Z=%.3f  (RMS X=%.3f Y=%.3f Z=%.3f)\r\n",
-		                  ampX, ampY, ampZ, rmsX, rmsY, rmsZ
-		              );
+		              log_message("SECOUSSE !  Amp: X=%.3f  Y=%.3f  Z=%.3f  (RMS X=%.3f Y=%.3f Z=%.3f)\r\n", ampX, ampY, ampZ, rmsX, rmsY, rmsZ);
 		          }
 		          else
 		          {
-		              log_message(
-		                  "Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",
-		                  rmsX, rmsY, rmsZ
-		              );
+		              log_message("Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",rmsX, rmsY, rmsZ);
 		          }
 		      }
-		  }
+		  //}
 
 
 	    osDelay(10); // laisse un peu de place pour scheduler
