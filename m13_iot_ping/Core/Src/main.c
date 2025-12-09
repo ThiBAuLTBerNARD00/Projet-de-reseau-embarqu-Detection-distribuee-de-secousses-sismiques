@@ -29,6 +29,7 @@
 #include "lwip/dns.h"
 #include "lwip/timeouts.h"
 #include "lwip/sockets.h"
+#include "lwip/api.h"
 #include <stdarg.h>
 //#include "ethernetif.h
 /* USER CODE END Includes */
@@ -81,6 +82,9 @@ osSemaphoreId adcSemaphoreHandle;
 #define SAMPLE_RATE     100     // 100 Hz
 #define RMS_WINDOW      SAMPLE_RATE   // 1 seconde = 100 échantillons
 #define MA_WINDOW       10            // moyenne glissante 100 ms
+#define TCP_SERVER_PORT     12345
+#define UDP_LISTEN_PORT     1234   /* port sur lequel on écoute les broadcasts */
+#define UDP_BROADCAST_PORT  1234
 static uint16_t adc_buf[ADC_BUF_LEN];
 // Buffer circulaire pour RMS
 static float rmsBufX[RMS_WINDOW];
@@ -98,6 +102,7 @@ static float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
 static float threshold = 0.05f;   // RMS au-dessus = secousse
+char last_broadcast_ip[16] = "0.0.0.0";
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -210,6 +215,30 @@ float computeRMS(float *buffer, uint16_t len)
 
     return sqrtf(sumSq / len);
 }
+void store_broadcast_ip(const ip_addr_t *addr)
+{
+    strncpy(last_broadcast_ip, ipaddr_ntoa(addr), sizeof(last_broadcast_ip));
+    last_broadcast_ip[sizeof(last_broadcast_ip)-1] = '\0';
+
+    log_message("[BROADCAST] IP reçue : %s\r\n", last_broadcast_ip);
+}
+void broadcast_receive_callback(void *arg, struct udp_pcb *pcb,struct pbuf *p, const ip_addr_t *addr, u16_t port)
+{
+    if (p != NULL)
+    {
+        char buffer[256];
+
+        int len = (p->len < sizeof(buffer) - 1) ? p->len : sizeof(buffer) - 1;
+        memcpy(buffer, p->payload, len);
+        buffer[len] = '\0';
+
+        log_message("[BROADCAST] Reçu de %s : %s\r\n",ipaddr_ntoa(addr), buffer);
+
+        store_broadcast_ip(addr);
+    }
+
+    pbuf_free(p);
+}
 /* USER CODE END 0 */
 
 /**
@@ -299,7 +328,7 @@ int main(void)
   clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
 
   /* definition and creation of serverTask */
-  osThreadDef(serverTask, StartServerTask, osPriorityNormal, 0, 4096);
+  osThreadDef(serverTask, StartServerTask, osPriorityAboveNormal, 0, 4096);
   serverTaskHandle = osThreadCreate(osThread(serverTask), NULL);
 
   /* definition and creation of heartBeatTask */
@@ -307,11 +336,11 @@ int main(void)
   heartBeatTaskHandle = osThreadCreate(osThread(heartBeatTask), NULL);
 
   /* definition and creation of BroardCast */
-  /*osThreadDef(BroardCast, StartBroadCast, osPriorityBelowNormal, 0, 4096);
+  osThreadDef(BroardCast, StartBroadCast, osPriorityBelowNormal, 0, 4096);
   BroardCastHandle = osThreadCreate(osThread(BroardCast), NULL);
 
   /* definition and creation of MasterTask */
-  osThreadDef(MasterTask, StartMasterTask, osPriorityIdle, 0, 1024);
+  osThreadDef(MasterTask, StartMasterTask, osPriorityNormal, 0, 1024);
   MasterTaskHandle = osThreadCreate(osThread(MasterTask), NULL);
 
   /* definition and creation of ADCTask */
@@ -767,10 +796,31 @@ void StartClientTask(void const * argument)
 {
   /* USER CODE BEGIN StartClientTask */
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	for(;;)
+ 	{
+		struct netconn *conn;
+		ip_addr_t server_ip;
+		err_t err;
+		IP4_ADDR(&server_ip,192,168,129,11);//use your own computer IPfor testing with the pythoncode
+		conn=netconn_new(NETCONN_TCP);
+		if(conn!=NULL){
+			err=netconn_connect(conn,&server_ip,1234);
+			if(err==ERR_OK){
+				const char *json="{\"type\": data, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7\"}";
+				log_message("[CLIENT] Sending : %s...\r\n",json);
+				netconn_write(conn,json,strlen(json),NETCONN_COPY);
+			}
+			else{
+				log_message("[CLIENT] Could not reach server.\r\n");
+			}
+			netconn_close(conn);
+			netconn_delete(conn);
+		}
+		else{
+		log_message("[CLIENT] No connection available.\r\n");
+		}
+		osDelay(1000);
+	}
   /* USER CODE END StartClientTask */
 }
 
@@ -784,77 +834,79 @@ void StartClientTask(void const * argument)
 void StartServerTask(void const * argument)
 {
   /* USER CODE BEGIN StartServerTask */
-  /* Infinite loop */
-	int sock, newsock;
-	uint8_t err=0;
-	struct sockaddr_in addr, client;
-	socklen_t client_len = sizeof(client);
+	struct netconn *conn, *newconn;
+	    err_t err;
+	    struct netbuf *buf;
+	    char *data;
+	    u16_t len;
+	    ip_addr_t client_ip;
+	    LWIP_UNUSED_ARG(argument);
 
-	char rxbuf[256];
-	char txbuf[256];
-
-	    // ----- Create TCP socket -----
-	sock = lwip_socket(AF_INET, SOCK_STREAM, 0);
-	if (sock < 0) {
-	    printf("Server socket error\n");
-	    vTaskDelete(NULL);
-	}
-
-	addr.sin_family = AF_INET;
-	addr.sin_port = PP_HTONS(12345);
-	addr.sin_addr.s_addr = PP_HTONL(INADDR_ANY);
-
-	if (lwip_bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
-	    printf("Bind failed\n");
-	    lwip_close(sock);
-	    vTaskDelete(NULL);
-	}
-
-	lwip_listen(sock, 1);
-	log_message("TCP server listening on port 12345\n");
-
-	while (1) {
-	   newsock = lwip_accept(sock, (struct sockaddr *)&client, &client_len);
-
-	   if (newsock >= 0) {
-	      memset(rxbuf, 0, sizeof(rxbuf));
-	      err=lwip_read(newsock, rxbuf, sizeof(rxbuf)-1);
-	      if(err>0){
-	    	  // ---- Check if it's a data request ----
-	    	  if (strstr(rxbuf, "\"type\":\"data_request\"")) {
-
-	    		  // Example: read acceleration values from global variables
-	    	  	  float ax = rmsX;
-	    	  	  float ay = rmsY;
-	    	  	  float az = rmsZ;
-
-	    	  	  snprintf(txbuf, sizeof(txbuf),
-	    	  	                "{"
-	    	  	                   "\"type\":\"data_response\","
-	    	  	                   "\"id\":\"nucleo-01\","
-	    	  	                   "\"timestamp\":\"2025-10-02T08:21:01Z\","
-	    	  	                   "\"acceleration\":{"
-	    	  	                        "\"x\":%.3f,"
-	    	  	                        "\"y\":%.3f,"
-	    	  	                        "\"z\":%.3f"
-	    	  	                    "},"
-	    	  	                   "\"status\":\"normal\""
-	    	  	                 "}",
-	    	  	                ax,
-	    	  					ay,
-	    	  					az
-	    	  	           );
-
-	    	  	    lwip_write(newsock, txbuf, strlen(txbuf));
-	    	  }
-	      }
-
-
-	     lwip_close(newsock);
+	    /* create a new TCP netconn */
+	    conn = netconn_new(NETCONN_TCP);
+	    if (!conn) {
+	        printf("netconn_new TCP failed\n");
+	        vTaskDelete(NULL);
+	        return;
 	    }
 
-	   osDelay(10);
-	}
+	    err = netconn_bind(conn, IP_ADDR_ANY, TCP_SERVER_PORT);
+	    if (err != ERR_OK) {
+	        printf("netconn_bind TCP failed: %d\n", err);
+	        netconn_delete(conn);
+	        vTaskDelete(NULL);
+	        return;
+	    }
+
+	    netconn_listen(conn);
+	    printf("TCP server listening on port %d\n", TCP_SERVER_PORT);
+
+	    for (;;) {
+	        /* accept (blocking) but managed by netconn/tcpip thread */
+	        err = netconn_accept(conn, &newconn);
+	        if (err == ERR_OK && newconn) {
+	            //ip_addr_copy(client_ip, netconn_getpeer(newconn));
+	            printf("TCP connection accepted\n");
+
+	            /* set a recv timeout so we don't block forever */
+	            netconn_set_recvtimeout(newconn, 5000); /* ms */
+
+	            while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
+	                do {
+	                    netbuf_data(buf, (void**)&data, &len);
+	                    if (len > 0) {
+	                        /* assure null-terminated for strstr usage */
+	                        char msg[512];
+	                        size_t copylen = (len < sizeof(msg)-1) ? len : sizeof(msg)-1;
+	                        memcpy(msg, data, copylen);
+	                        msg[copylen] = '\0';
+
+	                        /* debug print */
+	                        log_message("TCP recv: %s\n", msg);
+
+	                        //if (strstr(msg, "\"type\":\"data_request\"")) {
+	                            char txbuf[256];
+	                            float ax = rmsX;
+	                            float ay = rmsY;
+	                            float az = rmsZ;
+	                            snprintf(txbuf, sizeof(txbuf),
+	                                     "{\"type\":\"data_response\",\"id\":\"nucleo-01\",\"timestamp\":\"2025-10-02T08:21:01Z\",\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"status\":\"normal\"}",
+	                                     ax, ay, az);
+	                            netconn_write(newconn, txbuf, strlen(txbuf), NETCONN_COPY);
+	                        //}
+	                    }
+	                } while (netbuf_next(buf) >= 0);
+	                netbuf_delete(buf);
+	            }
+
+	            /* close connection */
+	            netconn_close(newconn);
+	            netconn_delete(newconn);
+	            printf("TCP connection closed\n");
+	        }
+	        /* small delay to yield */
+	        osDelay(10);
+	    }
   /* USER CODE END StartServerTask */
 }
 
@@ -888,11 +940,12 @@ void StartBroadCast(void const * argument)
 {
   /* USER CODE BEGIN StartBroadCast */
 	/* Infinite loop */
-	struct udp_pcb *udp;
+	struct udp_pcb *udp_send;
+	struct udp_pcb *udp_rec;
 	struct pbuf *p;
 
 	const char *device_id = "nucleo-01";
-	const char *my_ip = "192.168.128.155";   //
+	const char *my_ip = "192.168.1.180";   //
 	uint16_t len=0;
 	uint16_t err=0;
 	ip_addr_t dest_ip;
@@ -904,17 +957,20 @@ void StartBroadCast(void const * argument)
 
 	log_message("Broadcast task started.\r\n");
 
-	udp = udp_new();
+	udp_send = udp_new();
 	//udp_setflags(udp, UDP_FLAGS_BROADCAST);
-	ip_set_option(udp, SOF_BROADCAST);
+	ip_set_option(udp_send, SOF_BROADCAST);
 	printf("Flags netif: 0x%X\n", netif_default->flags);
-	if (!udp) {
+	if (!udp_send) {
 	   log_message("UDP alloc failed!\r\n");
 	   vTaskDelete(NULL);
 	}
 	//err=udp_connect(udp, &dest_ip, 50000);
-	udp_bind(udp, IP_ADDR_ANY, 0);     // port source aléatoire
-
+	udp_bind(udp_send, IP_ADDR_ANY, 0);     // port source aléatoire
+	//
+	udp_rec = udp_new();
+	udp_bind(udp_rec, IP_ADDR_ANY, UDP_LISTEN_PORT);   // 1234
+	udp_recv(udp_rec, broadcast_receive_callback, NULL);
 	for(;;)
 	{
 	    char json_msg[256];
@@ -934,7 +990,7 @@ void StartBroadCast(void const * argument)
 	     p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
 	     if (!p) continue;
 	     pbuf_take(p, json_msg, len);
-	     udp_sendto(udp, p, &dest_ip, 1234);
+	     udp_sendto(udp_send, p, &dest_ip, 1234);
 
 	     pbuf_free(p);
 

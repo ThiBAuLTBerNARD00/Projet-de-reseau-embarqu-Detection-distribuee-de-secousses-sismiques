@@ -1,37 +1,10 @@
-10:56:04 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+21:29:34 **** Incremental Build of configuration Debug for project m13_iot_ping ****
 make -j16 all 
-arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
-../Core/Src/main.c: In function 'computeRMS':
-../Core/Src/main.c:211:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
-  211 |     return sqrtf(sumSq / len);
-      |            ^~~~~
-../Core/Src/main.c:33:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
-   32 | #include <stdarg.h>
-  +++ |+#include <math.h>
-   33 | //#include "ethernetif.h
-../Core/Src/main.c:211:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
-  211 |     return sqrtf(sumSq / len);
-      |            ^~~~~
-../Core/Src/main.c:211:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
-../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:313:3: warning: "/*" within comment [-Wcomment]
-  313 |   /* definition and creation of MasterTask */
-      |    
-../Core/Src/main.c: In function 'StartBroadCast':
-../Core/Src/main.c:897:18: warning: unused variable 'err' [-Wunused-variable]
-  897 |         uint16_t err=0;
-      |                  ^~~
-arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static -u _printf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: m13_iot_ping.elf
- 
 arm-none-eabi-size  m13_iot_ping.elf 
-arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
    text	   data	    bss	    dec	    hex	filename
- 144988	    840	 107928	 253756	  3df3c	m13_iot_ping.elf
+ 140924	    856	 422328	 564108	  89b8c	m13_iot_ping.elf
 Finished building: default.size.stdout
  
-Finished building: m13_iot_ping.list
- 
 
-10:56:12 Build Finished. 0 errors, 4 warnings. (took 7s.396ms)
+21:29:35 Build Finished. 0 errors, 0 warnings. (took 676ms)
 
