@@ -57,6 +57,8 @@
 #define MEM_SIZE 16000
 /*----- Default Value for F7 devices: 0x20048000 -----*/
 #define LWIP_RAM_HEAP_POINTER 0x20048000
+/*----- Default Value for ARP_TABLE_SIZE: 10 ---*/
+#define ARP_TABLE_SIZE 127
 /*----- Value in opt.h for LWIP_ETHERNET: LWIP_ARP || PPPOE_SUPPORT -*/
 #define LWIP_ETHERNET 1
 /*----- Default Value for ETHARP_SUPPORT_STATIC_ENTRIES: 0 ---*/
@@ -65,8 +67,6 @@
 #define IP_FORWARD 1
 /*----- Default Value for IP_SOF_BROADCAST: 0 ---*/
 #define IP_SOF_BROADCAST 1
-/*----- Default Value for IP_SOF_BROADCAST_RECV: 0 ---*/
-#define IP_SOF_BROADCAST_RECV 1
 /*----- Default Value for IP_FORWARD_ALLOW_TX_ON_RX_NETIF: 0 ---*/
 #define IP_FORWARD_ALLOW_TX_ON_RX_NETIF 1
 /*----- Default Value for LWIP_BROADCAST_PING: 0 ---*/

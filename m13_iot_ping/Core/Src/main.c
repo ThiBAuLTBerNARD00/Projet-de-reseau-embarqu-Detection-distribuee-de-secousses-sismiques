@@ -67,6 +67,7 @@ osThreadId heartBeatTaskHandle;
 osThreadId BroardCastHandle;
 osThreadId MasterTaskHandle;
 osThreadId ADCTaskHandle;
+osThreadId ServBroadcastHandle;
 osMessageQId messageQueueHandle;
 osMutexId uartMutexHandle;
 osSemaphoreId SemaphoreMasterHandle;
@@ -82,7 +83,7 @@ osSemaphoreId adcSemaphoreHandle;
 #define SAMPLE_RATE     100     // 100 Hz
 #define RMS_WINDOW      SAMPLE_RATE   // 1 seconde = 100 échantillons
 #define MA_WINDOW       10            // moyenne glissante 100 ms
-#define TCP_SERVER_PORT     12345
+#define TCP_SERVER_PORT     1234
 #define UDP_LISTEN_PORT     1234   /* port sur lequel on écoute les broadcasts */
 #define UDP_BROADCAST_PORT  1234
 static uint16_t adc_buf[ADC_BUF_LEN];
@@ -121,6 +122,7 @@ void StartHeartBeatTask(void const * argument);
 void StartBroadCast(void const * argument);
 void StartMasterTask(void const * argument);
 void StartADCTask(void const * argument);
+void StartServerBroadcastTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
 
@@ -324,7 +326,7 @@ int main(void)
   logMessageTaskHandle = osThreadCreate(osThread(logMessageTask), NULL);
 
   /* definition and creation of clientTask */
-  osThreadDef(clientTask, StartClientTask, osPriorityBelowNormal, 0, 1024);
+  osThreadDef(clientTask, StartClientTask, osPriorityNormal, 0, 4096);
   clientTaskHandle = osThreadCreate(osThread(clientTask), NULL);
 
   /* definition and creation of serverTask */
@@ -346,6 +348,10 @@ int main(void)
   /* definition and creation of ADCTask */
   osThreadDef(ADCTask, StartADCTask, osPriorityIdle, 0, 1024);
   ADCTaskHandle = osThreadCreate(osThread(ADCTask), NULL);
+
+  /* definition and creation of ServBroadcast */
+  osThreadDef(ServBroadcast, StartServerBroadcastTask, osPriorityBelowNormal, 0, 4096);
+  ServBroadcastHandle = osThreadCreate(osThread(ServBroadcast), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -801,12 +807,12 @@ void StartClientTask(void const * argument)
 		struct netconn *conn;
 		ip_addr_t server_ip;
 		err_t err;
-		IP4_ADDR(&server_ip,192,168,129,11);//use your own computer IPfor testing with the pythoncode
+		IP4_ADDR(&server_ip,192,168,1,185);//use your own computer IPfor testing with the pythoncode
 		conn=netconn_new(NETCONN_TCP);
 		if(conn!=NULL){
 			err=netconn_connect(conn,&server_ip,1234);
 			if(err==ERR_OK){
-				const char *json="{\"type\": data, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7\"}";
+				const char *json="{\"type\": data, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7 je tenmerde\"}";
 				log_message("[CLIENT] Sending : %s...\r\n",json);
 				netconn_write(conn,json,strlen(json),NETCONN_COPY);
 			}
@@ -819,7 +825,7 @@ void StartClientTask(void const * argument)
 		else{
 		log_message("[CLIENT] No connection available.\r\n");
 		}
-		osDelay(1000);
+		osDelay(2000);
 	}
   /* USER CODE END StartClientTask */
 }
@@ -869,7 +875,7 @@ void StartServerTask(void const * argument)
 	            printf("TCP connection accepted\n");
 
 	            /* set a recv timeout so we don't block forever */
-	            netconn_set_recvtimeout(newconn, 5000); /* ms */
+	            netconn_set_recvtimeout(newconn, 3000); /* ms */
 
 	            while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
 	                do {
@@ -968,9 +974,9 @@ void StartBroadCast(void const * argument)
 	//err=udp_connect(udp, &dest_ip, 50000);
 	udp_bind(udp_send, IP_ADDR_ANY, 0);     // port source aléatoire
 	//
-	udp_rec = udp_new();
+	/*udp_rec = udp_new();
 	udp_bind(udp_rec, IP_ADDR_ANY, UDP_LISTEN_PORT);   // 1234
-	udp_recv(udp_rec, broadcast_receive_callback, NULL);
+	udp_recv(udp_rec, broadcast_receive_callback, NULL);*/
 	for(;;)
 	{
 	    char json_msg[256];
@@ -990,7 +996,7 @@ void StartBroadCast(void const * argument)
 	     p = pbuf_alloc(PBUF_TRANSPORT, len, PBUF_RAM);
 	     if (!p) continue;
 	     pbuf_take(p, json_msg, len);
-	     udp_sendto(udp_send, p, &dest_ip, 1234);
+	     udp_sendto(udp_send, p, &dest_ip, UDP_BROADCAST_PORT);
 
 	     pbuf_free(p);
 
@@ -1151,6 +1157,51 @@ void StartADCTask(void const * argument)
 	  }
 
   /* USER CODE END StartADCTask */
+}
+
+/* USER CODE BEGIN Header_StartServerBroadcastTask */
+/**
+* @brief Function implementing the ServBroadcast thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartServerBroadcastTask */
+void StartServerBroadcastTask(void const * argument)
+{
+  /* USER CODE BEGIN StartServerBroadcastTask */
+  /* Infinite loop */
+	struct netconn *udp_conn;
+	struct netbuf *buf;
+	err_t err;
+
+	/* Créer une connexion UDP en mode écoute */
+	udp_conn = netconn_new(NETCONN_UDP);
+	netconn_bind(udp_conn, IP_ADDR_ANY, UDP_LISTEN_PORT);   // 1234
+	netconn_set_recvtimeout(udp_conn,15000);
+	for(;;)
+	{
+	    /* Attendre un paquet UDP (bloquant jusqu'à réception) */
+	    err = netconn_recv(udp_conn, &buf);
+
+	    if (err == ERR_OK)
+	    {
+	        char data[256];
+	        ip_addr_t *addr = netbuf_fromaddr(buf);  // IP source
+	        u16_t port      = netbuf_fromport(buf);  // Port source
+
+	        u16_t len = buf->p->tot_len;
+	        if (len >= sizeof(data)) len = sizeof(data)-1;
+
+	        netbuf_copy(buf, data, len);
+	        data[len] = '\0';
+
+	        log_message("[NETCONN UDP] Reçu de %s:%d : %s\r\n",
+	                    ipaddr_ntoa(addr), port, data);
+
+	        netbuf_delete(buf);
+	    }
+	}
+  /* USER CODE END StartServerBroadcastTask */
 }
 
 /**
