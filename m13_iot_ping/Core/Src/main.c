@@ -86,6 +86,11 @@ osSemaphoreId adcSemaphoreHandle;
 #define TCP_SERVER_PORT     1234
 #define UDP_LISTEN_PORT     1234   /* port sur lequel on écoute les broadcasts */
 #define UDP_BROADCAST_PORT  1234
+#define MAX_IPS 10
+static char broadcast_ip_list[MAX_IPS][16];
+static uint8_t ip_count = 0;
+static uint8_t ip_index = 0;
+
 static uint16_t adc_buf[ADC_BUF_LEN];
 // Buffer circulaire pour RMS
 static float rmsBufX[RMS_WINDOW];
@@ -219,28 +224,26 @@ float computeRMS(float *buffer, uint16_t len)
 }
 void store_broadcast_ip(const ip_addr_t *addr)
 {
-    strncpy(last_broadcast_ip, ipaddr_ntoa(addr), sizeof(last_broadcast_ip));
-    last_broadcast_ip[sizeof(last_broadcast_ip)-1] = '\0';
+    const char *iptxt = ipaddr_ntoa(addr);
 
-    log_message("[BROADCAST] IP reçue : %s\r\n", last_broadcast_ip);
-}
-void broadcast_receive_callback(void *arg, struct udp_pcb *pcb,struct pbuf *p, const ip_addr_t *addr, u16_t port)
-{
-    if (p != NULL)
+    // Vérifier si déjà existante
+    for (uint8_t i = 0; i < ip_count; i++)
     {
-        char buffer[256];
-
-        int len = (p->len < sizeof(buffer) - 1) ? p->len : sizeof(buffer) - 1;
-        memcpy(buffer, p->payload, len);
-        buffer[len] = '\0';
-
-        log_message("[BROADCAST] Reçu de %s : %s\r\n",ipaddr_ntoa(addr), buffer);
-
-        store_broadcast_ip(addr);
+        if (strcmp(broadcast_ip_list[i], iptxt) == 0)
+            return;  // déjà stockée
     }
 
-    pbuf_free(p);
+    // Ajouter nouvelle IP
+    strncpy(broadcast_ip_list[ip_count], iptxt, 16);
+    broadcast_ip_list[ip_count][15] = '\0';
+
+    if (ip_count < MAX_IPS)
+        ip_count++;
+
+    log_message("[BROADCAST] Nouvelle IP enregistrée : %s\r\n", iptxt);
 }
+
+
 /* USER CODE END 0 */
 
 /**
@@ -785,7 +788,7 @@ void LogMessageTask(void const * argument)
 		 HAL_MAX_DELAY);
 		 osMutexRelease(uartMutexHandle); //not necessary
 	}
-	osDelay(200);
+	osDelay(100);
   }
 
   /* USER CODE END LogMessageTask */
@@ -804,15 +807,31 @@ void StartClientTask(void const * argument)
   /* Infinite loop */
 	for(;;)
  	{
+		if (ip_count == 0)
+		{
+		    log_message("[CLIENT] Aucun serveur connu. Attente broadcast...\r\n");
+		    osDelay(1000);
+		    continue;
+		}
 		struct netconn *conn;
 		ip_addr_t server_ip;
 		err_t err;
-		IP4_ADDR(&server_ip,192,168,1,185);//use your own computer IPfor testing with the pythoncode
+		char *target_ip = broadcast_ip_list[ip_index];
+		ip_index = (ip_index + 1) % ip_count;
+
+		//IP4_ADDR(&server_ip,192,168,1,181);
+		ip4addr_aton(target_ip, &server_ip);
 		conn=netconn_new(NETCONN_TCP);
 		if(conn!=NULL){
 			err=netconn_connect(conn,&server_ip,1234);
 			if(err==ERR_OK){
-				const char *json="{\"type\": data, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7 je tenmerde\"}";
+				//const char *json="{\"type\": data_request, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7 je tenmerde\"}";
+				const char *json ="{"
+			      		   "\"type\":\"data_request\","
+			       		   "\"from\":\"nucleo-01\","
+			       		   "\"to\":\"nucleo-14\","
+			       		   "\"timestamp\":\"2025-10-02T08:20:00Z\""
+			       		 "}";
 				log_message("[CLIENT] Sending : %s...\r\n",json);
 				netconn_write(conn,json,strlen(json),NETCONN_COPY);
 			}
@@ -889,7 +908,7 @@ void StartServerTask(void const * argument)
 
 	                        /* debug print */
 	                        log_message("TCP recv: %s\n", msg);
-
+	                        osDelay(30);
 	                        //if (strstr(msg, "\"type\":\"data_request\"")) {
 	                            char txbuf[256];
 	                            float ax = rmsX;
@@ -973,10 +992,7 @@ void StartBroadCast(void const * argument)
 	}
 	//err=udp_connect(udp, &dest_ip, 50000);
 	udp_bind(udp_send, IP_ADDR_ANY, 0);     // port source aléatoire
-	//
-	/*udp_rec = udp_new();
-	udp_bind(udp_rec, IP_ADDR_ANY, UDP_LISTEN_PORT);   // 1234
-	udp_recv(udp_rec, broadcast_receive_callback, NULL);*/
+
 	for(;;)
 	{
 	    char json_msg[256];
@@ -1188,15 +1204,14 @@ void StartServerBroadcastTask(void const * argument)
 	        char data[256];
 	        ip_addr_t *addr = netbuf_fromaddr(buf);  // IP source
 	        u16_t port      = netbuf_fromport(buf);  // Port source
-
+	        store_broadcast_ip(addr);
 	        u16_t len = buf->p->tot_len;
 	        if (len >= sizeof(data)) len = sizeof(data)-1;
 
 	        netbuf_copy(buf, data, len);
 	        data[len] = '\0';
 
-	        log_message("[NETCONN UDP] Reçu de %s:%d : %s\r\n",
-	                    ipaddr_ntoa(addr), port, data);
+	        log_message("[NETCONN UDP] Reçu de %s:%d : %s\r\n",ipaddr_ntoa(addr), port, data);
 
 	        netbuf_delete(buf);
 	    }
