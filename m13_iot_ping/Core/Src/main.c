@@ -53,7 +53,11 @@ extern struct netif gnetif;
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
+I2C_HandleTypeDef hi2c1;
+
 RTC_HandleTypeDef hrtc;
+
+SPI_HandleTypeDef hspi2;
 
 TIM_HandleTypeDef htim2;
 
@@ -68,6 +72,7 @@ osThreadId BroardCastHandle;
 osThreadId MasterTaskHandle;
 osThreadId ADCTaskHandle;
 osThreadId ServBroadcastHandle;
+osThreadId RTCHandle;
 osMessageQId messageQueueHandle;
 osMutexId uartMutexHandle;
 osSemaphoreId SemaphoreMasterHandle;
@@ -90,7 +95,18 @@ osSemaphoreId adcSemaphoreHandle;
 static char broadcast_ip_list[MAX_IPS][16];
 static uint8_t ip_count = 0;
 static uint8_t ip_index = 0;
-
+#define EEPROM_WREN	0x06
+#define EEPROM_WRITE	0x02
+#define EEPROM_READ	0x03
+#define FRAM_BASE_ADDR     0x0000
+#define FRAM_NODE_SIZE    16    // 3 floats (12 octets) + marge
+#define MAX_NODES         12
+typedef struct {
+    float rms_x;
+    float rms_y;
+    float rms_z;
+} FramRMS_t;
+#define BQ32000_ADDRESS 0x68 << 1
 static uint16_t adc_buf[ADC_BUF_LEN];
 // Buffer circulaire pour RMS
 static float rmsBufX[RMS_WINDOW];
@@ -107,7 +123,7 @@ static float rmsX = 0, rmsY = 0, rmsZ = 0;
 static float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
-static float threshold = 0.05f;   // RMS au-dessus = secousse
+static float threshold = 2500.05f;   // RMS au-dessus = secousse
 char last_broadcast_ip[16] = "0.0.0.0";
 /* USER CODE END PV */
 
@@ -119,6 +135,8 @@ static void MX_USART3_UART_Init(void);
 static void MX_RTC_Init(void);
 static void MX_ADC1_Init(void);
 static void MX_TIM2_Init(void);
+static void MX_I2C1_Init(void);
+static void MX_SPI2_Init(void);
 void StartDefaultTask(void const * argument);
 void LogMessageTask(void const * argument);
 void StartClientTask(void const * argument);
@@ -128,8 +146,16 @@ void StartBroadCast(void const * argument);
 void StartMasterTask(void const * argument);
 void StartADCTask(void const * argument);
 void StartServerBroadcastTask(void const * argument);
+void StartRTCTask(void const * argument);
 
 /* USER CODE BEGIN PFP */
+uint8_t BCD_to_DEC(uint8_t val){
+    return (val >> 4) * 10 + (val & 0x0F);
+}
+
+uint8_t DEC_to_BCD(uint8_t val){
+    return ((val / 10) << 4) | (val % 10);
+}
 
 /* USER CODE END PFP */
 
@@ -242,8 +268,139 @@ void store_broadcast_ip(const ip_addr_t *addr)
 
     log_message("[BROADCAST] Nouvelle IP enregistrée : %s\r\n", iptxt);
 }
+void FRAM_Write(uint16_t addr, uint8_t *data, uint8_t length)
+{
+    uint8_t buf[5];
 
+    /* Enable Write */
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_RESET);
+    buf[0] = EEPROM_WREN;
+    HAL_SPI_Transmit(&hspi2, buf, 1, 100);
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_SET);
 
+    /* Write command + address + data */
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_RESET);
+    buf[0] = EEPROM_WRITE;
+    buf[1] = (addr >> 16);
+    buf[2] = (addr>>8);
+    buf[3] = addr &0xFF;
+
+    HAL_SPI_Transmit(&hspi2, buf, 4, 1000);
+    HAL_SPI_Transmit(&hspi2, data, length, 100);
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_SET);
+}
+
+uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length)
+{
+    uint8_t tx[4];
+    uint8_t rx;
+
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_RESET);
+
+    tx[0] = EEPROM_READ;
+    tx[1] = (addr >> 16);
+    tx[2] = (addr>>8);
+    tx[3] = addr ;
+
+    HAL_SPI_Transmit(&hspi2, tx, 4, 100);
+    HAL_SPI_Receive(&hspi2, buffer, length, 100);
+
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_SET);
+
+    return rx;
+}
+static bool extract_rms_xyz(const char *msg,float *rx, float *ry, float *rz)
+{
+    if (sscanf(msg,"%*[^x]\"x\":%f%*[^y]\"y\":%f%*[^z]\"z\":%f",rx, ry, rz) == 3)
+        return true;
+
+    return false;
+}
+static void fram_update_rms(uint8_t node_index,float new_x, float new_y, float new_z)
+{
+    FramRMS_t stored = {0};
+
+    uint16_t addr = FRAM_BASE_ADDR + node_index * FRAM_NODE_SIZE;
+
+    FRAM_Read(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
+
+    bool updated = false;
+
+    if (fabsf(new_x) > fabsf(stored.rms_x)) {
+        stored.rms_x = new_x;
+        updated = true;
+    }
+    if (fabsf(new_y) > fabsf(stored.rms_y)) {
+        stored.rms_y = new_y;
+        updated = true;
+    }
+    if (fabsf(new_z) > fabsf(stored.rms_z)) {
+        stored.rms_z = new_z;
+        updated = true;
+    }
+
+    if (updated) {
+        FRAM_Write(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
+        log_message("[FRAM] RMS updated for node %d (X=%.3f Y=%.3f Z=%.3f)\r\n",node_index,stored.rms_x, stored.rms_y, stored.rms_z);
+    }
+}
+static uint8_t get_node_index(const char *msg)
+{
+    if (strstr(msg, "\"id\":\"nucleo-01\"")) return 0;
+    if (strstr(msg, "\"id\":\"nucleo-14\"")) return 1;
+    if (strstr(msg, "\"id\":\"nucleo-08\"")) return 2;
+    return 9; // inconnu
+}
+HAL_StatusTypeDef RTC_ReadTime(uint8_t *seconds, uint8_t *minutes)
+{
+    uint8_t buffer[2];   // seconds + minutes
+    uint8_t start_addr = 0x00;  // seconds register
+
+    if(HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, &start_addr, 1, HAL_MAX_DELAY) != HAL_OK)
+        return HAL_ERROR;
+
+    if(HAL_I2C_Master_Receive(&hi2c1, BQ32000_ADDRESS, buffer, 2, HAL_MAX_DELAY) != HAL_OK)
+        return HAL_ERROR;
+
+    *seconds = BCD_to_DEC(buffer[0] & 0x7F);
+    *minutes = BCD_to_DEC(buffer[1] & 0x7F);
+
+    return HAL_OK;
+}
+HAL_StatusTypeDef RTC_SetTime(uint8_t hours, uint8_t minutes, uint8_t seconds)
+{
+    uint8_t data[4];
+
+    data[0] = 0x00;  // start register
+    data[1] = DEC_to_BCD(seconds);  // seconds
+    data[2] = DEC_to_BCD(minutes);  // minutes
+    data[3] = DEC_to_BCD(hours);    // hours
+
+    if (HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, data, 4, HAL_MAX_DELAY) != HAL_OK)
+        return HAL_ERROR;
+
+    return HAL_OK;
+}
+void rtc_get_timestamp(char *buffer, size_t buflen)
+{
+    RTC_TimeTypeDef sTime;
+    RTC_DateTypeDef sDate;
+
+    /* Lire RTC STM32 */
+    HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+    HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN); // obligatoire
+
+    /* Format ISO 8601 : YYYY-MM-DDTHH:MM:SSZ */
+    snprintf(buffer, buflen,
+             "20%02d-%02d-%02dT%02d:%02d:%02dZ",
+             sDate.Year,
+             sDate.Month,
+             sDate.Date,
+             sTime.Hours,
+             sTime.Minutes,
+             sTime.Seconds);
+}
+char ts[32];
 /* USER CODE END 0 */
 
 /**
@@ -280,8 +437,17 @@ int main(void)
   MX_RTC_Init();
   MX_ADC1_Init();
   MX_TIM2_Init();
+  MX_I2C1_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
+ /* uint8_t tx = 0x5A;
+  uint8_t rx = 0x00;
 
+  FRAM_Write(0x0000, &tx, 1);
+  HAL_Delay(1);
+  FRAM_Read(0x0000, &rx, 1);
+
+  log_message("FRAM TEST BYTE: TX=0x%02X RX=0x%02X\r\n", tx, rx);
   /* USER CODE END 2 */
 
   /* Create the mutex(es) */
@@ -355,6 +521,10 @@ int main(void)
   /* definition and creation of ServBroadcast */
   osThreadDef(ServBroadcast, StartServerBroadcastTask, osPriorityBelowNormal, 0, 4096);
   ServBroadcastHandle = osThreadCreate(osThread(ServBroadcast), NULL);
+
+  /* definition and creation of RTC */
+  osThreadDef(RTC, StartRTCTask, osPriorityIdle, 0, 1024);
+  RTCHandle = osThreadCreate(osThread(RTC), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -502,6 +672,54 @@ static void MX_ADC1_Init(void)
 }
 
 /**
+  * @brief I2C1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_I2C1_Init(void)
+{
+
+  /* USER CODE BEGIN I2C1_Init 0 */
+
+  /* USER CODE END I2C1_Init 0 */
+
+  /* USER CODE BEGIN I2C1_Init 1 */
+
+  /* USER CODE END I2C1_Init 1 */
+  hi2c1.Instance = I2C1;
+  hi2c1.Init.Timing = 0x20404768;
+  hi2c1.Init.OwnAddress1 = 0;
+  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analogue filter
+  */
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Digital filter
+  */
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN I2C1_Init 2 */
+
+  /* USER CODE END I2C1_Init 2 */
+
+}
+
+/**
   * @brief RTC Initialization Function
   * @param None
   * @retval None
@@ -561,6 +779,46 @@ static void MX_RTC_Init(void)
   /* USER CODE BEGIN RTC_Init 2 */
 
   /* USER CODE END RTC_Init 2 */
+
+}
+
+/**
+  * @brief SPI2 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_SPI2_Init(void)
+{
+
+  /* USER CODE BEGIN SPI2_Init 0 */
+
+  /* USER CODE END SPI2_Init 0 */
+
+  /* USER CODE BEGIN SPI2_Init 1 */
+
+  /* USER CODE END SPI2_Init 1 */
+  /* SPI2 parameter configuration*/
+  hspi2.Instance = SPI2;
+  hspi2.Init.Mode = SPI_MODE_MASTER;
+  hspi2.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi2.Init.DataSize = SPI_DATASIZE_8BIT;
+  hspi2.Init.CLKPolarity = SPI_POLARITY_LOW;
+  hspi2.Init.CLKPhase = SPI_PHASE_1EDGE;
+  hspi2.Init.NSS = SPI_NSS_SOFT;
+  hspi2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+  hspi2.Init.FirstBit = SPI_FIRSTBIT_MSB;
+  hspi2.Init.TIMode = SPI_TIMODE_DISABLE;
+  hspi2.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
+  hspi2.Init.CRCPolynomial = 7;
+  hspi2.Init.CRCLength = SPI_CRC_LENGTH_DATASIZE;
+  hspi2.Init.NSSPMode = SPI_NSS_PULSE_ENABLE;
+  if (HAL_SPI_Init(&hspi2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN SPI2_Init 2 */
+
+  /* USER CODE END SPI2_Init 2 */
 
 }
 
@@ -686,6 +944,9 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(USB_PowerSwitchOn_GPIO_Port, USB_PowerSwitchOn_Pin, GPIO_PIN_RESET);
 
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(PIN_CS_GPIO_Port, PIN_CS_Pin, GPIO_PIN_RESET);
+
   /*Configure GPIO pin : USER_Btn_Pin */
   GPIO_InitStruct.Pin = USER_Btn_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
@@ -725,6 +986,13 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(USB_VBUS_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PIN_CS_Pin */
+  GPIO_InitStruct.Pin = PIN_CS_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(PIN_CS_GPIO_Port, &GPIO_InitStruct);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
 
@@ -844,7 +1112,7 @@ void StartClientTask(void const * argument)
 		else{
 		log_message("[CLIENT] No connection available.\r\n");
 		}
-		osDelay(2000);
+		osDelay(8000);
 	}
   /* USER CODE END StartClientTask */
 }
@@ -914,11 +1182,35 @@ void StartServerTask(void const * argument)
 	                            float ax = rmsX;
 	                            float ay = rmsY;
 	                            float az = rmsZ;
+	                            rtc_get_timestamp(ts, sizeof(ts));
 	                            snprintf(txbuf, sizeof(txbuf),
-	                                     "{\"type\":\"data_response\",\"id\":\"nucleo-01\",\"timestamp\":\"2025-10-02T08:21:01Z\",\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"status\":\"normal\"}",
-	                                     ax, ay, az);
+	                                     "{\"type\":\"data_response\",\"id\":\"nucleo-01\",\"timestamp\":\"%s\",\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"status\":\"normal\"}",
+										 ts,ax, ay, az);
 	                            netconn_write(newconn, txbuf, strlen(txbuf), NETCONN_COPY);
-	                        //}
+	                        //}/* -------- DATA RESPONSE -------- */
+	                        //else //if (strstr(msg, "\"type\":\"data_response\""))
+	                        //{
+	                            float rx, ry, rz;
+
+	                            //if (extract_rms_xyz(msg, &rx, &ry, &rz))
+	                            //{
+	                                uint8_t node = get_node_index(msg);
+	                                rx=0.123;
+	                                ry=0.453;
+	                                rz=0.789;
+	                                fram_update_rms(node, rx, ry, rz);
+
+	                                log_message("[SERVER] RMS received from node %d : X=%.3f Y=%.3f Z=%.3f\r\n",
+	                                            node, rx, ry, rz);
+	                                osDelay(15);
+	                            /*}
+	                            else
+	                            {
+	                                log_message("[SERVER] Invalid data_response format\r\n");
+	                            }*/
+	                      //  }
+
+
 	                    }
 	                } while (netbuf_next(buf) >= 0);
 	                netbuf_delete(buf);
@@ -1217,6 +1509,57 @@ void StartServerBroadcastTask(void const * argument)
 	    }
 	}
   /* USER CODE END StartServerBroadcastTask */
+}
+
+/* USER CODE BEGIN Header_StartRTCTask */
+/**
+* @brief Function implementing the RTC thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_StartRTCTask */
+void StartRTCTask(void const * argument)
+{
+  /* USER CODE BEGIN StartRTCTask */
+  /* Infinite loop */
+    RTC_TimeTypeDef sTime;
+    RTC_DateTypeDef sDate;
+
+    bool external_rtc_updated = false;
+
+    for (;;)
+    {
+        /* 1️⃣ Attendre que le NTP ait synchronisé l’RTC interne */
+        if (is_synced && !external_rtc_updated)
+        {
+            /* Lire l’heure RTC STM32 */
+            HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+            HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN); // obligatoire après GetTime
+
+            log_message("[RTC] STM32 RTC = %02d:%02d:%02d  %02d/%02d/20%02d\r\n",
+                        sTime.Hours,
+                        sTime.Minutes,
+                        sTime.Seconds,
+                        sDate.Date,
+                        sDate.Month,
+                        sDate.Year);
+
+            /* 2️⃣ Écrire dans la RTC externe (BQ32000) */
+            if (RTC_SetTime(sTime.Hours, sTime.Minutes, sTime.Seconds) == HAL_OK)
+            {
+                log_message("[RTC] External RTC updated successfully\r\n");
+                external_rtc_updated = true;
+            }
+            else
+            {
+                log_message("[RTC] ERROR updating external RTC\r\n");
+            }
+        }
+
+        /* 3️⃣ Rafraîchissement lent (ou périodique si tu veux resync) */
+        osDelay(1000);
+    }
+  /* USER CODE END StartRTCTask */
 }
 
 /**
