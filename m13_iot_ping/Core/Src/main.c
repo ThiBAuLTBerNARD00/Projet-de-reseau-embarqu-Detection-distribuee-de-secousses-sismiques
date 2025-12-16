@@ -190,7 +190,7 @@ void ntp_receive(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t
 		struct tm *timeinfo = gmtime(&rawtime);
 		RTC_TimeTypeDef sTime;
 		RTC_DateTypeDef sDate;
-		sTime.Hours = timeinfo->tm_hour;
+		sTime.Hours = timeinfo->tm_hour+1;
 		sTime.Minutes = timeinfo->tm_min;
 		sTime.Seconds = timeinfo->tm_sec;
 		sDate.Year = timeinfo->tm_year-100; // STM32: année depuis 2000
@@ -351,23 +351,28 @@ static uint8_t get_node_index(const char *msg)
     if (strstr(msg, "\"id\":\"nucleo-08\"")) return 2;
     return 9; // inconnu
 }
-HAL_StatusTypeDef RTC_ReadTime(uint8_t *seconds, uint8_t *minutes)
+HAL_StatusTypeDef RTC_ReadTime(uint8_t *seconds, uint8_t *minutes, uint8_t * hours, uint8_t *day,uint8_t *date, uint8_t * month, uint8_t *year)
 {
-    uint8_t buffer[2];   // seconds + minutes
+    uint8_t buffer[7];   // seconds + minutes
     uint8_t start_addr = 0x00;  // seconds register
 
     if(HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, &start_addr, 1, HAL_MAX_DELAY) != HAL_OK)
         return HAL_ERROR;
 
-    if(HAL_I2C_Master_Receive(&hi2c1, BQ32000_ADDRESS, buffer, 2, HAL_MAX_DELAY) != HAL_OK)
+    if(HAL_I2C_Master_Receive(&hi2c1, BQ32000_ADDRESS, buffer, 7, HAL_MAX_DELAY) != HAL_OK)
         return HAL_ERROR;
 
     *seconds = BCD_to_DEC(buffer[0] & 0x7F);
     *minutes = BCD_to_DEC(buffer[1] & 0x7F);
+    *hours   = BCD_to_DEC(buffer[2] & 0x3F);
+    *day     = BCD_to_DEC(buffer[3] & 0x07);
+    *date    = BCD_to_DEC(buffer[4] & 0x3F);
+    *month   = BCD_to_DEC(buffer[5] & 0x1F);
+    *year    = BCD_to_DEC(buffer[6]);
 
     return HAL_OK;
 }
-HAL_StatusTypeDef RTC_SetTime(uint8_t hours, uint8_t minutes, uint8_t seconds)
+HAL_StatusTypeDef RTC_SetTime(uint8_t hours, uint8_t minutes, uint8_t seconds,uint8_t day,uint8_t date, uint8_t month, uint8_t year)
 {
     uint8_t data[4];
 
@@ -375,8 +380,12 @@ HAL_StatusTypeDef RTC_SetTime(uint8_t hours, uint8_t minutes, uint8_t seconds)
     data[1] = DEC_to_BCD(seconds);  // seconds
     data[2] = DEC_to_BCD(minutes);  // minutes
     data[3] = DEC_to_BCD(hours);    // hours
+    data[4] = DEC_to_BCD(day);         // 1–7
+    data[5] = DEC_to_BCD(date);        // 1–31
+    data[6] = DEC_to_BCD(month);       // 1–12
+    data[7] = DEC_to_BCD(year);        // 0–99
 
-    if (HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, data, 4, HAL_MAX_DELAY) != HAL_OK)
+    if (HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, data, 8, HAL_MAX_DELAY) != HAL_OK)
         return HAL_ERROR;
 
     return HAL_OK;
@@ -1128,103 +1137,101 @@ void StartServerTask(void const * argument)
 {
   /* USER CODE BEGIN StartServerTask */
 	struct netconn *conn, *newconn;
-	    err_t err;
-	    struct netbuf *buf;
-	    char *data;
-	    u16_t len;
-	    ip_addr_t client_ip;
-	    LWIP_UNUSED_ARG(argument);
+	err_t err;
+	struct netbuf *buf;
+	char *data;
+	u16_t len;
+	ip_addr_t client_ip;
+	LWIP_UNUSED_ARG(argument);
 
-	    /* create a new TCP netconn */
-	    conn = netconn_new(NETCONN_TCP);
-	    if (!conn) {
-	        printf("netconn_new TCP failed\n");
-	        vTaskDelete(NULL);
-	        return;
-	    }
+	/* create a new TCP netconn */
+	conn = netconn_new(NETCONN_TCP);
+	if (!conn) {
+	    printf("netconn_new TCP failed\n");
+	    vTaskDelete(NULL);
+	    return;
+	}
 
-	    err = netconn_bind(conn, IP_ADDR_ANY, TCP_SERVER_PORT);
-	    if (err != ERR_OK) {
-	        printf("netconn_bind TCP failed: %d\n", err);
-	        netconn_delete(conn);
-	        vTaskDelete(NULL);
-	        return;
-	    }
+	err = netconn_bind(conn, IP_ADDR_ANY, TCP_SERVER_PORT);
+	if (err != ERR_OK) {
+	    printf("netconn_bind TCP failed: %d\n", err);
+	    netconn_delete(conn);
+	    vTaskDelete(NULL);
+	    return;
+	}
 
-	    netconn_listen(conn);
-	    printf("TCP server listening on port %d\n", TCP_SERVER_PORT);
-
-	    for (;;) {
-	        /* accept (blocking) but managed by netconn/tcpip thread */
-	        err = netconn_accept(conn, &newconn);
-	        if (err == ERR_OK && newconn) {
-	            //ip_addr_copy(client_ip, netconn_getpeer(newconn));
-	            printf("TCP connection accepted\n");
+	netconn_listen(conn);
+	printf("TCP server listening on port %d\n", TCP_SERVER_PORT);
+    for (;;) {
+        /* accept (blocking) but managed by netconn/tcpip thread */
+        err = netconn_accept(conn, &newconn);
+        if (err == ERR_OK && newconn) {
+            //ip_addr_copy(client_ip, netconn_getpeer(newconn));
+            printf("TCP connection accepted\n");
 
 	            /* set a recv timeout so we don't block forever */
-	            netconn_set_recvtimeout(newconn, 3000); /* ms */
+            netconn_set_recvtimeout(newconn, 3000); /* ms */
 
-	            while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
-	                do {
-	                    netbuf_data(buf, (void**)&data, &len);
-	                    if (len > 0) {
-	                        /* assure null-terminated for strstr usage */
-	                        char msg[512];
-	                        size_t copylen = (len < sizeof(msg)-1) ? len : sizeof(msg)-1;
-	                        memcpy(msg, data, copylen);
-	                        msg[copylen] = '\0';
-
+            while ((err = netconn_recv(newconn, &buf)) == ERR_OK) {
+                do {
+                    netbuf_data(buf, (void**)&data, &len);
+                    if (len > 0) {
+                        /* assure null-terminated for strstr usage */
+                        char msg[512];
+                        size_t copylen = (len < sizeof(msg)-1) ? len : sizeof(msg)-1;
+                        memcpy(msg, data, copylen);
+                        msg[copylen] = '\0';
 	                        /* debug print */
-	                        log_message("TCP recv: %s\n", msg);
-	                        osDelay(30);
-	                        //if (strstr(msg, "\"type\":\"data_request\"")) {
-	                            char txbuf[256];
-	                            float ax = rmsX;
-	                            float ay = rmsY;
-	                            float az = rmsZ;
-	                            rtc_get_timestamp(ts, sizeof(ts));
-	                            snprintf(txbuf, sizeof(txbuf),
-	                                     "{\"type\":\"data_response\",\"id\":\"nucleo-01\",\"timestamp\":\"%s\",\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"status\":\"normal\"}",
-										 ts,ax, ay, az);
-	                            netconn_write(newconn, txbuf, strlen(txbuf), NETCONN_COPY);
-	                        //}/* -------- DATA RESPONSE -------- */
-	                        //else //if (strstr(msg, "\"type\":\"data_response\""))
-	                        //{
-	                            float rx, ry, rz;
+                        log_message("TCP recv: %s\n", msg);
+                        osDelay(30);
+                        //if (strstr(msg, "\"type\":\"data_request\"")) {
+                            char txbuf[256];
+                            float ax = rmsX;
+                            float ay = rmsY;
+                            float az = rmsZ;
+                            rtc_get_timestamp(ts, sizeof(ts));
+                            snprintf(txbuf, sizeof(txbuf),
+                                     "{\"type\":\"data_response\",\"id\":\"nucleo-01\",\"timestamp\":\"%s\",\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"status\":\"normal\"}",
+									 ts,ax, ay, az);
+                            netconn_write(newconn, txbuf, strlen(txbuf), NETCONN_COPY);
+                        //}/* -------- DATA RESPONSE -------- */
+                        //else //if (strstr(msg, "\"type\":\"data_response\""))
+                        //{
+                            float rx, ry, rz;
 
-	                            //if (extract_rms_xyz(msg, &rx, &ry, &rz))
-	                            //{
-	                                uint8_t node = get_node_index(msg);
-	                                rx=0.123;
-	                                ry=0.453;
-	                                rz=0.789;
-	                                fram_update_rms(node, rx, ry, rz);
+                            //if (extract_rms_xyz(msg, &rx, &ry, &rz))
+                            //{
+                                uint8_t node = get_node_index(msg);
+                                rx=0.123;
+                                ry=0.453;
+                                rz=0.789;
+                                fram_update_rms(node, rx, ry, rz);
 
-	                                log_message("[SERVER] RMS received from node %d : X=%.3f Y=%.3f Z=%.3f\r\n",
-	                                            node, rx, ry, rz);
-	                                osDelay(15);
-	                            /*}
-	                            else
-	                            {
-	                                log_message("[SERVER] Invalid data_response format\r\n");
-	                            }*/
-	                      //  }
+                                log_message("[SERVER] RMS received from node %d : X=%.3f Y=%.3f Z=%.3f\r\n",
+                                            node, rx, ry, rz);
+                                osDelay(15);
+                            /*}
+                            else
+                            {
+                                log_message("[SERVER] Invalid data_response format\r\n");
+                            }*/
+                      //  }
 
 
-	                    }
-	                } while (netbuf_next(buf) >= 0);
-	                netbuf_delete(buf);
-	            }
+                    }
+                } while (netbuf_next(buf) >= 0);
+                netbuf_delete(buf);
+            }
 
-	            /* close connection */
-	            netconn_close(newconn);
-	            netconn_delete(newconn);
-	            printf("TCP connection closed\n");
-	        }
-	        /* small delay to yield */
-	        osDelay(10);
-	    }
-  /* USER CODE END StartServerTask */
+            /* close connection */
+            netconn_close(newconn);
+            netconn_delete(newconn);
+            printf("TCP connection closed\n");
+        }
+        /* small delay to yield */
+        osDelay(10);
+    }
+ /* USER CODE END StartServerTask */
 }
 
 /* USER CODE BEGIN Header_StartHeartBeatTask */
@@ -1288,15 +1295,17 @@ void StartBroadCast(void const * argument)
 	for(;;)
 	{
 	    char json_msg[256];
+	    rtc_get_timestamp(ts, sizeof(ts));
         len=snprintf(json_msg, sizeof(json_msg),
        		"{"
       		   "\"type\":\"presence\","
        		   "\"id\":\"%s\","
        		   "\"ip\":\"%s\","
-       		   "\"timestamp\":\"2025-10-02T08:20:00Z\""
+       		   "\"timestamp\":\"%s\""
        		 "}",
 			 device_id,
-	         my_ip//,
+	         my_ip,
+			 ts
 	         //get_timestamp() // A faire avec la RTC //"\"timestamp\":\"%s\""
 	        );
 
@@ -1545,10 +1554,11 @@ void StartRTCTask(void const * argument)
                         sDate.Year);
 
             /* 2️⃣ Écrire dans la RTC externe (BQ32000) */
-            if (RTC_SetTime(sTime.Hours, sTime.Minutes, sTime.Seconds) == HAL_OK)
+            if (RTC_SetTime(sTime.Hours, sTime.Minutes, sTime.Seconds,sDate.WeekDay,sDate.Date,sDate.Month,sDate.Year) == HAL_OK)
             {
                 log_message("[RTC] External RTC updated successfully\r\n");
                 external_rtc_updated = true;
+
             }
             else
             {

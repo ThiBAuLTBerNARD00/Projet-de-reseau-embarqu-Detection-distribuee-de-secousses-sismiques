@@ -1,4 +1,4 @@
-21:16:07 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+12:06:21 **** Incremental Build of configuration Debug for project m13_iot_ping ****
 make -j16 all 
 arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
 ../Core/Src/main.c: In function 'computeRMS':
@@ -29,19 +29,19 @@ arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -D
       |         ^~~~~
 ../Core/Src/main.c:337:9: note: include '<math.h>' or provide a declaration of 'fabsf'
 ../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:451:3: warning: "/*" within comment [-Wcomment]
-  451 |   /* USER CODE END 2 */
+../Core/Src/main.c:460:3: warning: "/*" within comment [-Wcomment]
+  460 |   /* USER CODE END 2 */
       |    
 ../Core/Src/main.c: In function 'StartServerTask':
-../Core/Src/main.c:1135:23: warning: unused variable 'client_ip' [-Wunused-variable]
- 1135 |             ip_addr_t client_ip;
-      |                       ^~~~~~~~~
+../Core/Src/main.c:1144:19: warning: unused variable 'client_ip' [-Wunused-variable]
+ 1144 |         ip_addr_t client_ip;
+      |                   ^~~~~~~~~
 ../Core/Src/main.c: In function 'StartBroadCast':
-../Core/Src/main.c:1267:18: warning: unused variable 'err' [-Wunused-variable]
- 1267 |         uint16_t err=0;
+../Core/Src/main.c:1274:18: warning: unused variable 'err' [-Wunused-variable]
+ 1274 |         uint16_t err=0;
       |                  ^~~
-../Core/Src/main.c:1261:25: warning: unused variable 'udp_rec' [-Wunused-variable]
- 1261 |         struct udp_pcb *udp_rec;
+../Core/Src/main.c:1268:25: warning: unused variable 'udp_rec' [-Wunused-variable]
+ 1268 |         struct udp_pcb *udp_rec;
       |                         ^~~~~~~
 ../Core/Src/main.c: At top level:
 ../Core/Src/main.c:312:13: warning: 'extract_rms_xyz' defined but not used [-Wunused-function]
@@ -60,11 +60,11 @@ Finished building target: m13_iot_ping.elf
 arm-none-eabi-size  m13_iot_ping.elf 
 arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
    text	   data	    bss	    dec	    hex	filename
- 157948	    840	 429544	 588332	  8fa2c	m13_iot_ping.elf
+ 158028	    840	 429544	 588412	  8fa7c	m13_iot_ping.elf
 Finished building: default.size.stdout
  
 Finished building: m13_iot_ping.list
  
 
-21:16:12 Build Finished. 0 errors, 12 warnings. (took 4s.720ms)
+12:06:27 Build Finished. 0 errors, 12 warnings. (took 5s.236ms)
 
