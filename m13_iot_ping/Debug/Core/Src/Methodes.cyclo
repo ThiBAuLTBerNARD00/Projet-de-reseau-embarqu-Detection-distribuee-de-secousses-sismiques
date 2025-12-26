@@ -1,0 +1,14 @@
+../Core/Src/Methodes.c:11:6:log_message	1
+../Core/Src/Methodes.c:24:6:ntp_receive	2
+../Core/Src/Methodes.c:47:6:sync_rtc_with_ntp	6
+../Core/Src/Methodes.c:77:7:movingAverage	1
+../Core/Src/Methodes.c:83:7:computeRMS	2
+../Core/Src/Methodes.c:91:6:store_broadcast_ip	5
+../Core/Src/Methodes.c:117:6:FRAM_Write	1
+../Core/Src/Methodes.c:139:9:FRAM_Read	1
+../Core/Src/Methodes.c:158:6:extract_rms_xyz	7
+../Core/Src/Methodes.c:177:6:fram_update_rms	5
+../Core/Src/Methodes.c:205:9:get_node_index	4
+../Core/Src/Methodes.c:214:19:RTC_ReadTime	3
+../Core/Src/Methodes.c:236:19:RTC_SetTime	2
+../Core/Src/Methodes.c:255:6:rtc_get_timestamp	3

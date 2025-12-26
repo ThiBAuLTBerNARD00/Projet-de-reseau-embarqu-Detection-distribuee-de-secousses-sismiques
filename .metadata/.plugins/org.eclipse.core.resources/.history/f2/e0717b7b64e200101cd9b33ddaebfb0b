@@ -1,0 +1,35 @@
+/*
+ * tasks.h
+ *
+ *  Created on: Dec 26, 2025
+ *      Author: thiba
+ */
+
+#ifndef INC_TASKS_H_
+#define INC_TASKS_H_
+
+#include "cmsis_os.h"
+#include <stdbool.h>
+#include "lwip/netif.h"
+#include "lwip/udp.h"
+#include "lwip/dns.h"
+#include "lwip/timeouts.h"
+#include "lwip/sockets.h"
+#include "lwip/api.h"
+#include <stdarg.h>
+extern osSemaphoreId SemaphoreMasterHandle;
+extern osSemaphoreId adcSemaphoreHandle;
+extern osMutexId uartMutexHandle;
+extern osMessageQId messageQueueHandle;
+void StartClientTask(void const * argument);
+void StartServerTask(void const * argument);
+void StartADCTask(void const * argument);
+void StartHeartBeatTask(void const * argument);
+void StartBroadCast(void const * argument);
+void StartMasterTask(void const * argument);
+void StartServerBroadcastTask(void const * argument);
+void StartRTCTask(void const * argument);
+void LogMessageTask(void const * argument);
+
+
+#endif /* INC_TASKS_H_ */

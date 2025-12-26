@@ -1,0 +1,90 @@
+/*
+ * tasks.h
+ *
+ *  Created on: Dec 26, 2025
+ *      Author: thiba
+ */
+
+#ifndef INC_TASKS_H_
+#define INC_TASKS_H_
+#include "stm32f7xx_hal.h"
+#include "cmsis_os.h"
+#include <stdbool.h>
+#include "lwip/netif.h"
+#include "lwip/udp.h"
+#include "lwip/dns.h"
+#include "lwip/timeouts.h"
+#include "lwip/sockets.h"
+#include "lwip/api.h"
+#include <stdarg.h>
+extern osSemaphoreId SemaphoreMasterHandle;
+extern osSemaphoreId adcSemaphoreHandle;
+extern osMutexId uartMutexHandle;
+extern osMessageQId messageQueueHandle;
+
+extern UART_HandleTypeDef huart3;
+extern ADC_HandleTypeDef hadc1;
+extern SPI_HandleTypeDef hspi2;
+extern TIM_HandleTypeDef htim2;
+
+#define MAX_MSG_LEN 128
+#define NTP_SERVER "pool.ntp.org"
+#define NTP_PORT 123
+#define NTP_TIMESTAMP_DELTA 2208988800UL // Différence entre 1900 et 1970
+#define AXIS_COUNT     3
+#define SAMPLES        64
+#define ADC_BUF_LEN    (AXIS_COUNT * SAMPLES)
+#define SAMPLE_RATE     100     // 100 Hz
+#define RMS_WINDOW      SAMPLE_RATE   // 1 seconde = 100 échantillons
+#define MA_WINDOW       10            // moyenne glissante 100 ms
+#define TCP_SERVER_PORT     1234
+#define UDP_LISTEN_PORT     1234   /* port sur lequel on écoute les broadcasts */
+#define UDP_BROADCAST_PORT  1234
+#define MAX_IPS 10
+static char broadcast_ip_list[MAX_IPS][16];
+static uint8_t ip_count = 0;
+static uint8_t ip_index = 0;
+#define EEPROM_WREN	0x06
+#define EEPROM_WRITE	0x02
+#define EEPROM_READ	0x03
+#define FRAM_BASE_ADDR     0x0000
+#define FRAM_NODE_SIZE    16    // 3 floats (12 octets) + marge
+#define MAX_NODES         12
+typedef struct {
+    float rms_x;
+    float rms_y;
+    float rms_z;
+} FramRMS_t;
+#define BQ32000_ADDRESS 0x68 << 1
+
+static uint16_t adc_buf[ADC_BUF_LEN];
+// Buffer circulaire pour RMS
+static float rmsBufX[RMS_WINDOW];
+static float rmsBufY[RMS_WINDOW];
+static float rmsBufZ[RMS_WINDOW];
+static uint16_t rmsIndex = 0;
+static uint8_t rmsFilled = 0;
+
+// Valeurs filtrées
+static float maX = 0, maY = 0, maZ = 0;
+static float rmsX = 0, rmsY = 0, rmsZ = 0;
+
+// Baseline RMS (ambiance)
+static float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
+
+// Seuil de détection (à ajuster selon ton capteur)
+static float threshold = 0.25f;   // RMS au-dessus = secousse
+char last_broadcast_ip[16] = "0.0.0.0";
+
+void StartClientTask(void const * argument);
+void StartServerTask(void const * argument);
+void StartADCTask(void const * argument);
+void StartHeartBeatTask(void const * argument);
+void StartBroadCast(void const * argument);
+void StartMasterTask(void const * argument);
+void StartServerBroadcastTask(void const * argument);
+void StartRTCTask(void const * argument);
+void LogMessageTask(void const * argument);
+
+
+#endif /* INC_TASKS_H_ */
