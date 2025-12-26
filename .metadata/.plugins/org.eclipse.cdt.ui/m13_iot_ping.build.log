@@ -1,70 +1,10 @@
-12:06:21 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+14:34:12 **** Incremental Build of configuration Debug for project m13_iot_ping ****
 make -j16 all 
-arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
-../Core/Src/main.c: In function 'computeRMS':
-../Core/Src/main.c:249:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
-  249 |     return sqrtf(sumSq / len);
-      |            ^~~~~
-../Core/Src/main.c:34:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
-   33 | #include <stdarg.h>
-  +++ |+#include <math.h>
-   34 | //#include "ethernetif.h
-../Core/Src/main.c:249:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
-  249 |     return sqrtf(sumSq / len);
-      |            ^~~~~
-../Core/Src/main.c:249:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
-../Core/Src/main.c: In function 'fram_update_rms':
-../Core/Src/main.c:329:9: warning: implicit declaration of function 'fabsf' [-Wimplicit-function-declaration]
-  329 |     if (fabsf(new_x) > fabsf(stored.rms_x)) {
-      |         ^~~~~
-../Core/Src/main.c:329:9: note: include '<math.h>' or provide a declaration of 'fabsf'
-../Core/Src/main.c:329:9: warning: incompatible implicit declaration of built-in function 'fabsf' [-Wbuiltin-declaration-mismatch]
-../Core/Src/main.c:329:9: note: include '<math.h>' or provide a declaration of 'fabsf'
-../Core/Src/main.c:333:9: warning: incompatible implicit declaration of built-in function 'fabsf' [-Wbuiltin-declaration-mismatch]
-  333 |     if (fabsf(new_y) > fabsf(stored.rms_y)) {
-      |         ^~~~~
-../Core/Src/main.c:333:9: note: include '<math.h>' or provide a declaration of 'fabsf'
-../Core/Src/main.c:337:9: warning: incompatible implicit declaration of built-in function 'fabsf' [-Wbuiltin-declaration-mismatch]
-  337 |     if (fabsf(new_z) > fabsf(stored.rms_z)) {
-      |         ^~~~~
-../Core/Src/main.c:337:9: note: include '<math.h>' or provide a declaration of 'fabsf'
-../Core/Src/main.c: In function 'main':
-../Core/Src/main.c:460:3: warning: "/*" within comment [-Wcomment]
-  460 |   /* USER CODE END 2 */
-      |    
-../Core/Src/main.c: In function 'StartServerTask':
-../Core/Src/main.c:1144:19: warning: unused variable 'client_ip' [-Wunused-variable]
- 1144 |         ip_addr_t client_ip;
-      |                   ^~~~~~~~~
-../Core/Src/main.c: In function 'StartBroadCast':
-../Core/Src/main.c:1274:18: warning: unused variable 'err' [-Wunused-variable]
- 1274 |         uint16_t err=0;
-      |                  ^~~
-../Core/Src/main.c:1268:25: warning: unused variable 'udp_rec' [-Wunused-variable]
- 1268 |         struct udp_pcb *udp_rec;
-      |                         ^~~~~~~
-../Core/Src/main.c: At top level:
-../Core/Src/main.c:312:13: warning: 'extract_rms_xyz' defined but not used [-Wunused-function]
-  312 | static bool extract_rms_xyz(const char *msg,float *rx, float *ry, float *rz)
-      |             ^~~~~~~~~~~~~~~
-../Core/Src/main.c: In function 'FRAM_Read':
-../Core/Src/main.c:310:12: warning: 'rx' is used uninitialized [-Wuninitialized]
-  310 |     return rx;
-      |            ^~
-../Core/Src/main.c:296:13: note: 'rx' was declared here
-  296 |     uint8_t rx;
-      |             ^~
-arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"C:\Users\thiba\Documents\M1\Q1\projet_mCetIOT\Projet\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static -u _printf_float -u _printf_float -u _scanf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
-Finished building target: m13_iot_ping.elf
- 
 arm-none-eabi-size  m13_iot_ping.elf 
-arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
    text	   data	    bss	    dec	    hex	filename
- 158028	    840	 429544	 588412	  8fa7c	m13_iot_ping.elf
+ 161696	    840	 429544	 592080	  908d0	m13_iot_ping.elf
 Finished building: default.size.stdout
  
-Finished building: m13_iot_ping.list
- 
 
-12:06:27 Build Finished. 0 errors, 12 warnings. (took 5s.236ms)
+14:34:13 Build Finished. 0 errors, 0 warnings. (took 756ms)
 

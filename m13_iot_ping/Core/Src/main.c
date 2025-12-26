@@ -123,7 +123,7 @@ static float rmsX = 0, rmsY = 0, rmsZ = 0;
 static float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
-static float threshold = 2500.05f;   // RMS au-dessus = secousse
+static float threshold = 0.25f;   // RMS au-dessus = secousse
 char last_broadcast_ip[16] = "0.0.0.0";
 /* USER CODE END PV */
 
@@ -163,7 +163,7 @@ uint8_t DEC_to_BCD(uint8_t val){
 /* USER CODE BEGIN 0 */
 typedef struct {
     uint8_t id;
-    char text[256];
+    char text[512];
 } Message_t;
 static struct udp_pcb *ntp_pcb;
 //struct netif gnetif;
@@ -259,6 +259,12 @@ void store_broadcast_ip(const ip_addr_t *addr)
             return;  // déjà stockée
     }
 
+    // Vérifier capacité
+    if (ip_count >= MAX_IPS)
+    {
+        log_message("[BROADCAST] Liste IP pleine (%d)\r\n", MAX_IPS);
+        return;
+    }
     // Ajouter nouvelle IP
     strncpy(broadcast_ip_list[ip_count], iptxt, 16);
     broadcast_ip_list[ip_count][15] = '\0';
@@ -309,13 +315,25 @@ uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length)
 
     return rx;
 }
-static bool extract_rms_xyz(const char *msg,float *rx, float *ry, float *rz)
+static bool extract_rms_xyz(const char *msg, float *rx, float *ry, float *rz)
 {
-    if (sscanf(msg,"%*[^x]\"x\":%f%*[^y]\"y\":%f%*[^z]\"z\":%f",rx, ry, rz) == 3)
-        return true;
+    const char *px = strstr(msg, "\"x\"");
+    const char *py = strstr(msg, "\"y\"");
+    const char *pz = strstr(msg, "\"z\"");
 
-    return false;
+    if (!px || !py || !pz)
+        return false;
+
+    if (sscanf(px, "\"x\"%*[^-0123456789.]%f", rx) != 1)
+        return false;
+    if (sscanf(py, "\"y\"%*[^-0123456789.]%f", ry) != 1)
+        return false;
+    if (sscanf(pz, "\"z\"%*[^-0123456789.]%f", rz) != 1)
+        return false;
+
+    return true;
 }
+
 static void fram_update_rms(uint8_t node_index,float new_x, float new_y, float new_z)
 {
     FramRMS_t stored = {0};
@@ -351,7 +369,17 @@ static uint8_t get_node_index(const char *msg)
     if (strstr(msg, "\"id\":\"nucleo-08\"")) return 2;
     return 9; // inconnu
 }
-HAL_StatusTypeDef RTC_ReadTime(uint8_t *seconds, uint8_t *minutes, uint8_t * hours, uint8_t *day,uint8_t *date, uint8_t * month, uint8_t *year)
+char ts[32];
+typedef struct{
+	uint8_t year;
+	uint8_t month;
+	uint8_t date;
+	uint8_t day;
+	uint8_t hours;
+	uint8_t minutes;
+	uint8_t seconds;
+}RTC_extern;
+HAL_StatusTypeDef RTC_ReadTime(RTC_extern *rtc)
 {
     uint8_t buffer[7];   // seconds + minutes
     uint8_t start_addr = 0x00;  // seconds register
@@ -362,54 +390,53 @@ HAL_StatusTypeDef RTC_ReadTime(uint8_t *seconds, uint8_t *minutes, uint8_t * hou
     if(HAL_I2C_Master_Receive(&hi2c1, BQ32000_ADDRESS, buffer, 7, HAL_MAX_DELAY) != HAL_OK)
         return HAL_ERROR;
 
-    *seconds = BCD_to_DEC(buffer[0] & 0x7F);
-    *minutes = BCD_to_DEC(buffer[1] & 0x7F);
-    *hours   = BCD_to_DEC(buffer[2] & 0x3F);
-    *day     = BCD_to_DEC(buffer[3] & 0x07);
-    *date    = BCD_to_DEC(buffer[4] & 0x3F);
-    *month   = BCD_to_DEC(buffer[5] & 0x1F);
-    *year    = BCD_to_DEC(buffer[6]);
+    rtc->seconds = BCD_to_DEC(buffer[0] & 0x7F);
+    rtc->minutes = BCD_to_DEC(buffer[1] & 0x7F);
+    rtc->hours   = BCD_to_DEC(buffer[2] & 0x3F);
+    rtc->day     = BCD_to_DEC(buffer[3] & 0x07);
+    rtc->date    = BCD_to_DEC(buffer[4] & 0x3F);
+    rtc->month   = BCD_to_DEC(buffer[5] & 0x1F);
+    rtc->year    = BCD_to_DEC(buffer[6]);
 
     return HAL_OK;
 }
-HAL_StatusTypeDef RTC_SetTime(uint8_t hours, uint8_t minutes, uint8_t seconds,uint8_t day,uint8_t date, uint8_t month, uint8_t year)
+
+HAL_StatusTypeDef RTC_SetTime(RTC_extern rtc)
 {
-    uint8_t data[4];
+    uint8_t data[8];
 
     data[0] = 0x00;  // start register
-    data[1] = DEC_to_BCD(seconds);  // seconds
-    data[2] = DEC_to_BCD(minutes);  // minutes
-    data[3] = DEC_to_BCD(hours);    // hours
-    data[4] = DEC_to_BCD(day);         // 1–7
-    data[5] = DEC_to_BCD(date);        // 1–31
-    data[6] = DEC_to_BCD(month);       // 1–12
-    data[7] = DEC_to_BCD(year);        // 0–99
+    data[1] = DEC_to_BCD(rtc.seconds);  // seconds
+    data[2] = DEC_to_BCD(rtc.minutes);  // minutes
+    data[3] = DEC_to_BCD(rtc.hours);    // hours
+    data[4] = DEC_to_BCD(rtc.day);         // 1–7
+    data[5] = DEC_to_BCD(rtc.date);        // 1–31
+    data[6] = DEC_to_BCD(rtc.month);       // 1–12
+    data[7] = DEC_to_BCD(rtc.year);        // 0–99
 
     if (HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, data, 8, HAL_MAX_DELAY) != HAL_OK)
         return HAL_ERROR;
 
     return HAL_OK;
 }
-void rtc_get_timestamp(char *buffer, size_t buflen)
+
+void rtc_get_timestamp(char *buffer, RTC_extern *rtc)
 {
-    RTC_TimeTypeDef sTime;
-    RTC_DateTypeDef sDate;
+    if (!buffer || !rtc)
+        return;
+    uint8_t len = 32;
+    snprintf(buffer, len,
+             "20%02u-%02u-%02uT%02u:%02u:%02uZ",
+             rtc->year,
+             rtc->month,
+             rtc->date,
+             rtc->hours,
+             rtc->minutes,
+             rtc->seconds);
 
-    /* Lire RTC STM32 */
-    HAL_RTC_GetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
-    HAL_RTC_GetDate(&hrtc, &sDate, RTC_FORMAT_BIN); // obligatoire
-
-    /* Format ISO 8601 : YYYY-MM-DDTHH:MM:SSZ */
-    snprintf(buffer, buflen,
-             "20%02d-%02d-%02dT%02d:%02d:%02dZ",
-             sDate.Year,
-             sDate.Month,
-             sDate.Date,
-             sTime.Hours,
-             sTime.Minutes,
-             sTime.Seconds);
 }
-char ts[32];
+
+
 /* USER CODE END 0 */
 
 /**
@@ -487,7 +514,7 @@ int main(void)
 
   /* Create the queue(s) */
   /* definition and creation of messageQueue */
-  osMessageQDef(messageQueue, 64, uint32_t);
+  osMessageQDef(messageQueue, 128, uint32_t);
   messageQueueHandle = osMessageCreate(osMessageQ(messageQueue), NULL);
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -640,7 +667,7 @@ static void MX_ADC1_Init(void)
   hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T2_TRGO;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 3;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.DMAContinuousRequests = ENABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
@@ -1082,6 +1109,7 @@ void StartClientTask(void const * argument)
 {
   /* USER CODE BEGIN StartClientTask */
   /* Infinite loop */
+	RTC_extern rtc;
 	for(;;)
  	{
 		if (ip_count == 0)
@@ -1096,13 +1124,15 @@ void StartClientTask(void const * argument)
 		char *target_ip = broadcast_ip_list[ip_index];
 		ip_index = (ip_index + 1) % ip_count;
 
-		//IP4_ADDR(&server_ip,192,168,1,181);
+		//IP4_ADDR(&server_ip,192,168,1,41);
 		ip4addr_aton(target_ip, &server_ip);
 		conn=netconn_new(NETCONN_TCP);
 		if(conn!=NULL){
 			err=netconn_connect(conn,&server_ip,1234);
 			if(err==ERR_OK){
 				//const char *json="{\"type\": data_request, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7 je tenmerde\"}";
+				/*RTC_ReadTime(&rtc);
+				rtc_get_timestamp(ts, &rtc);
 				const char *json ="{"
 			      		   "\"type\":\"data_request\","
 			       		   "\"from\":\"nucleo-01\","
@@ -1110,7 +1140,21 @@ void StartClientTask(void const * argument)
 			       		   "\"timestamp\":\"2025-10-02T08:20:00Z\""
 			       		 "}";
 				log_message("[CLIENT] Sending : %s...\r\n",json);
-				netconn_write(conn,json,strlen(json),NETCONN_COPY);
+				netconn_write(conn,json,strlen(json),NETCONN_COPY);*/
+				char txbuf[512];
+                float ax = rmsX;
+                float ay = rmsY;
+                float az = rmsZ;
+                RTC_ReadTime(&rtc);
+                rtc_get_timestamp(ts, &rtc);
+                snprintf(txbuf, sizeof(txbuf),"{\"type\":\"data_response\","
+                		"\"id\":\"nucleo-01\","
+                		"\"timestamp\":\"%s\","
+                		"\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},"
+                		"\"status\":\"normal\"}",
+						ts,ax, ay, az);
+				netconn_write(conn, txbuf, strlen(txbuf), NETCONN_COPY);
+				log_message("[CLIENT] Sending : %s... à %s\r\n",txbuf,ipaddr_ntoa(&server_ip));
 			}
 			else{
 				log_message("[CLIENT] Could not reach server.\r\n");
@@ -1142,6 +1186,7 @@ void StartServerTask(void const * argument)
 	char *data;
 	u16_t len;
 	ip_addr_t client_ip;
+	RTC_extern rtc;
 	LWIP_UNUSED_ARG(argument);
 
 	/* create a new TCP netconn */
@@ -1184,38 +1229,41 @@ void StartServerTask(void const * argument)
 	                        /* debug print */
                         log_message("TCP recv: %s\n", msg);
                         osDelay(30);
-                        //if (strstr(msg, "\"type\":\"data_request\"")) {
+                        if (strstr(msg, "data_request")) {
                             char txbuf[256];
                             float ax = rmsX;
                             float ay = rmsY;
                             float az = rmsZ;
-                            rtc_get_timestamp(ts, sizeof(ts));
+                            RTC_ReadTime(&rtc);
+                            rtc_get_timestamp(ts, &rtc);
                             snprintf(txbuf, sizeof(txbuf),
-                                     "{\"type\":\"data_response\",\"id\":\"nucleo-01\",\"timestamp\":\"%s\",\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},\"status\":\"normal\"}",
+                                     "{\"type\":\"data_response\","
+                                     "\"id\":\"nucleo-01\","
+                                     "\"timestamp\":\"%s\","
+                                     "\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},"
+                                     "\"status\":\"normal\"}",
 									 ts,ax, ay, az);
                             netconn_write(newconn, txbuf, strlen(txbuf), NETCONN_COPY);
-                        //}/* -------- DATA RESPONSE -------- */
-                        //else //if (strstr(msg, "\"type\":\"data_response\""))
-                        //{
+                        }/* -------- DATA RESPONSE -------- */
+                        else if (strstr(msg, "data"))
+                        {
                             float rx, ry, rz;
 
-                            //if (extract_rms_xyz(msg, &rx, &ry, &rz))
-                            //{
+                            if (extract_rms_xyz(msg, &rx, &ry, &rz))
+                            {
                                 uint8_t node = get_node_index(msg);
-                                rx=0.123;
-                                ry=0.453;
-                                rz=0.789;
+
                                 fram_update_rms(node, rx, ry, rz);
 
                                 log_message("[SERVER] RMS received from node %d : X=%.3f Y=%.3f Z=%.3f\r\n",
                                             node, rx, ry, rz);
                                 osDelay(15);
-                            /*}
+                            }
                             else
                             {
                                 log_message("[SERVER] Invalid data_response format\r\n");
-                            }*/
-                      //  }
+                            }
+                        }
 
 
                     }
@@ -1231,7 +1279,7 @@ void StartServerTask(void const * argument)
         /* small delay to yield */
         osDelay(10);
     }
- /* USER CODE END StartServerTask */
+  /* USER CODE END StartServerTask */
 }
 
 /* USER CODE BEGIN Header_StartHeartBeatTask */
@@ -1267,13 +1315,13 @@ void StartBroadCast(void const * argument)
 	struct udp_pcb *udp_send;
 	struct udp_pcb *udp_rec;
 	struct pbuf *p;
-
+	RTC_extern udprtc;
 	const char *device_id = "nucleo-01";
 	const char *my_ip = "192.168.1.180";   //
 	uint16_t len=0;
 	uint16_t err=0;
 	ip_addr_t dest_ip;
-
+	RTC_extern rtc;
 	IP4_ADDR(&dest_ip, 192,168,1,255);       //
 
 	// Attendre autorisation de la MasterTask
@@ -1295,7 +1343,8 @@ void StartBroadCast(void const * argument)
 	for(;;)
 	{
 	    char json_msg[256];
-	    rtc_get_timestamp(ts, sizeof(ts));
+	    RTC_ReadTime(&rtc);
+	    rtc_get_timestamp(ts, &rtc);
         len=snprintf(json_msg, sizeof(json_msg),
        		"{"
       		   "\"type\":\"presence\","
@@ -1403,6 +1452,7 @@ void StartADCTask(void const * argument)
 	  {
 		  //if (osSemaphoreWait(adcSemaphoreHandle, 1000) == osOK)
 		  //{
+		  	  sumX=sumY=sumZ=0;
 			  for (uint32_t i = 0; i < SAMPLES; i++)
 			  {
 			     sumX += adc_buf[i * 3 + 0];
@@ -1464,13 +1514,13 @@ void StartADCTask(void const * argument)
 		          }
 		          else
 		          {
-		              log_message("Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",rmsX, rmsY, rmsZ);
+		             // log_message("Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",rmsX, rmsY, rmsZ);
 		          }
 		      }
 		  //}
 
 
-	    osDelay(10); // laisse un peu de place pour scheduler
+	    osDelay(100); // laisse un peu de place pour scheduler
 	  }
 
   /* USER CODE END StartADCTask */
@@ -1533,7 +1583,7 @@ void StartRTCTask(void const * argument)
   /* Infinite loop */
     RTC_TimeTypeDef sTime;
     RTC_DateTypeDef sDate;
-
+    RTC_extern rtc;
     bool external_rtc_updated = false;
 
     for (;;)
@@ -1552,13 +1602,18 @@ void StartRTCTask(void const * argument)
                         sDate.Date,
                         sDate.Month,
                         sDate.Year);
-
+            rtc.hours=sTime.Hours;
+            rtc.minutes=sTime.Minutes;
+            rtc.seconds= sTime.Seconds;
+            rtc.date = sDate.Date;
+            rtc.month = sDate.Month;
+            rtc.year = sDate.Year;
+            rtc.day = sDate.WeekDay;
             /* 2️⃣ Écrire dans la RTC externe (BQ32000) */
-            if (RTC_SetTime(sTime.Hours, sTime.Minutes, sTime.Seconds,sDate.WeekDay,sDate.Date,sDate.Month,sDate.Year) == HAL_OK)
+            if (RTC_SetTime(rtc) == HAL_OK)
             {
                 log_message("[RTC] External RTC updated successfully\r\n");
                 external_rtc_updated = true;
-
             }
             else
             {

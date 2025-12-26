@@ -3,6 +3,7 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<item key="replaceBarOpen" value="false"/>
 	<list key="searchhistory">
+		<item value="USER_Btn"/>
 		<item value="hspi"/>
 		<item value="LWIP_NETCONN"/>
 		<item value="netc"/>
