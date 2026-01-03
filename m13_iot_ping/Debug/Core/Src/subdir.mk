@@ -5,6 +5,12 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
+../Core/Src/ADC_task.c \
+../Core/Src/BroadcastServer_task.c \
+../Core/Src/Broardcast_task.c \
+../Core/Src/Client_task.c \
+../Core/Src/Methodes.c \
+../Core/Src/Server_task.c \
 ../Core/Src/freertos.c \
 ../Core/Src/main.c \
 ../Core/Src/stm32f7xx_hal_msp.c \
@@ -15,6 +21,12 @@ C_SRCS += \
 ../Core/Src/system_stm32f7xx.c 
 
 OBJS += \
+./Core/Src/ADC_task.o \
+./Core/Src/BroadcastServer_task.o \
+./Core/Src/Broardcast_task.o \
+./Core/Src/Client_task.o \
+./Core/Src/Methodes.o \
+./Core/Src/Server_task.o \
 ./Core/Src/freertos.o \
 ./Core/Src/main.o \
 ./Core/Src/stm32f7xx_hal_msp.o \
@@ -25,6 +37,12 @@ OBJS += \
 ./Core/Src/system_stm32f7xx.o 
 
 C_DEPS += \
+./Core/Src/ADC_task.d \
+./Core/Src/BroadcastServer_task.d \
+./Core/Src/Broardcast_task.d \
+./Core/Src/Client_task.d \
+./Core/Src/Methodes.d \
+./Core/Src/Server_task.d \
 ./Core/Src/freertos.d \
 ./Core/Src/main.d \
 ./Core/Src/stm32f7xx_hal_msp.d \
@@ -42,7 +60,7 @@ Core/Src/%.o Core/Src/%.su Core/Src/%.cyclo: ../Core/Src/%.c Core/Src/subdir.mk
 clean: clean-Core-2f-Src
 
 clean-Core-2f-Src:
-	-$(RM) ./Core/Src/freertos.cyclo ./Core/Src/freertos.d ./Core/Src/freertos.o ./Core/Src/freertos.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32f7xx_hal_msp.cyclo ./Core/Src/stm32f7xx_hal_msp.d ./Core/Src/stm32f7xx_hal_msp.o ./Core/Src/stm32f7xx_hal_msp.su ./Core/Src/stm32f7xx_hal_timebase_tim.cyclo ./Core/Src/stm32f7xx_hal_timebase_tim.d ./Core/Src/stm32f7xx_hal_timebase_tim.o ./Core/Src/stm32f7xx_hal_timebase_tim.su ./Core/Src/stm32f7xx_it.cyclo ./Core/Src/stm32f7xx_it.d ./Core/Src/stm32f7xx_it.o ./Core/Src/stm32f7xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f7xx.cyclo ./Core/Src/system_stm32f7xx.d ./Core/Src/system_stm32f7xx.o ./Core/Src/system_stm32f7xx.su
+	-$(RM) ./Core/Src/ADC_task.cyclo ./Core/Src/ADC_task.d ./Core/Src/ADC_task.o ./Core/Src/ADC_task.su ./Core/Src/BroadcastServer_task.cyclo ./Core/Src/BroadcastServer_task.d ./Core/Src/BroadcastServer_task.o ./Core/Src/BroadcastServer_task.su ./Core/Src/Broardcast_task.cyclo ./Core/Src/Broardcast_task.d ./Core/Src/Broardcast_task.o ./Core/Src/Broardcast_task.su ./Core/Src/Client_task.cyclo ./Core/Src/Client_task.d ./Core/Src/Client_task.o ./Core/Src/Client_task.su ./Core/Src/Methodes.cyclo ./Core/Src/Methodes.d ./Core/Src/Methodes.o ./Core/Src/Methodes.su ./Core/Src/Server_task.cyclo ./Core/Src/Server_task.d ./Core/Src/Server_task.o ./Core/Src/Server_task.su ./Core/Src/freertos.cyclo ./Core/Src/freertos.d ./Core/Src/freertos.o ./Core/Src/freertos.su ./Core/Src/main.cyclo ./Core/Src/main.d ./Core/Src/main.o ./Core/Src/main.su ./Core/Src/stm32f7xx_hal_msp.cyclo ./Core/Src/stm32f7xx_hal_msp.d ./Core/Src/stm32f7xx_hal_msp.o ./Core/Src/stm32f7xx_hal_msp.su ./Core/Src/stm32f7xx_hal_timebase_tim.cyclo ./Core/Src/stm32f7xx_hal_timebase_tim.d ./Core/Src/stm32f7xx_hal_timebase_tim.o ./Core/Src/stm32f7xx_hal_timebase_tim.su ./Core/Src/stm32f7xx_it.cyclo ./Core/Src/stm32f7xx_it.d ./Core/Src/stm32f7xx_it.o ./Core/Src/stm32f7xx_it.su ./Core/Src/syscalls.cyclo ./Core/Src/syscalls.d ./Core/Src/syscalls.o ./Core/Src/syscalls.su ./Core/Src/sysmem.cyclo ./Core/Src/sysmem.d ./Core/Src/sysmem.o ./Core/Src/sysmem.su ./Core/Src/system_stm32f7xx.cyclo ./Core/Src/system_stm32f7xx.d ./Core/Src/system_stm32f7xx.o ./Core/Src/system_stm32f7xx.su
 
 .PHONY: clean-Core-2f-Src
 

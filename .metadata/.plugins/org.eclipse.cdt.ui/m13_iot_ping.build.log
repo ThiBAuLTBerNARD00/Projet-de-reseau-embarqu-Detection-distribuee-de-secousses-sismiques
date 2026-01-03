@@ -1,10 +1,193 @@
-14:34:12 **** Incremental Build of configuration Debug for project m13_iot_ping ****
+18:14:44 **** Incremental Build of configuration Debug for project m13_iot_ping ****
 make -j16 all 
+arm-none-eabi-gcc "../Core/Src/ADC_task.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/ADC_task.d" -MT"Core/Src/ADC_task.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/ADC_task.o"
+arm-none-eabi-gcc "../Core/Src/BroadcastServer_task.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/BroadcastServer_task.d" -MT"Core/Src/BroadcastServer_task.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/BroadcastServer_task.o"
+arm-none-eabi-gcc "../Core/Src/Broardcast_task.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/Broardcast_task.d" -MT"Core/Src/Broardcast_task.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/Broardcast_task.o"
+arm-none-eabi-gcc "../Core/Src/Client_task.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/Client_task.d" -MT"Core/Src/Client_task.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/Client_task.o"
+arm-none-eabi-gcc "../Core/Src/Methodes.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/Methodes.d" -MT"Core/Src/Methodes.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/Methodes.o"
+arm-none-eabi-gcc "../Core/Src/Server_task.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/Server_task.d" -MT"Core/Src/Server_task.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/Server_task.o"
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m7 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32F767xx -c -I../Core/Inc -I../LWIP/App -I../LWIP/Target -I../Middlewares/Third_Party/LwIP/src/include -I../Middlewares/Third_Party/LwIP/system -I../Drivers/STM32F7xx_HAL_Driver/Inc -I../Drivers/STM32F7xx_HAL_Driver/Inc/Legacy -I../Middlewares/Third_Party/FreeRTOS/Source/include -I../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS -I../Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM7/r0p1 -I../Drivers/BSP/Components/lan8742 -I../Middlewares/Third_Party/LwIP/src/include/netif/ppp -I../Drivers/CMSIS/Device/ST/STM32F7xx/Include -I../Middlewares/Third_Party/LwIP/src/include/lwip -I../Middlewares/Third_Party/LwIP/src/include/lwip/apps -I../Middlewares/Third_Party/LwIP/src/include/lwip/priv -I../Middlewares/Third_Party/LwIP/src/include/lwip/prot -I../Middlewares/Third_Party/LwIP/src/include/netif -I../Middlewares/Third_Party/LwIP/src/include/compat/posix -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/arpa -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/net -I../Middlewares/Third_Party/LwIP/src/include/compat/posix/sys -I../Middlewares/Third_Party/LwIP/src/include/compat/stdc -I../Middlewares/Third_Party/LwIP/system/arch -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/Methodes.c: In function 'ntp_receive':
+../Core/Src/Methodes.c:27:17: warning: implicit declaration of function 'memcpy' [-Wimplicit-function-declaration]
+   27 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/Methodes.c:8:1: note: include '<string.h>' or provide a declaration of 'memcpy'
+    7 | #include "Methodes.h"
+  +++ |+#include <string.h>
+    8 | 
+../Core/Src/Methodes.c:27:17: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+   27 |                 memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+      |                 ^~~~~~
+../Core/Src/Methodes.c:27:17: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/Broardcast_task.c: In function 'StartBroadCast':
+../Core/Src/Broardcast_task.c:24:20: warning: unused variable 'udprtc' [-Wunused-variable]
+   24 |         RTC_extern udprtc;
+      |                    ^~~~~~
+../Core/Src/Broardcast_task.c:22:25: warning: unused variable 'udp_rec' [-Wunused-variable]
+   22 |         struct udp_pcb *udp_rec;
+      |                         ^~~~~~~
+In file included from ../Core/Inc/tasks.h:20,
+                 from ../Core/Src/Broardcast_task.c:8:
+../Core/Inc/Methodes.h: At top level:
+../Core/Inc/Methodes.h:107:24: warning: 'ntp_pcb' defined but not used [-Wunused-variable]
+  107 | static struct udp_pcb *ntp_pcb;
+      |                        ^~~~~~~
+In file included from ../Core/Inc/tasks.h:20,
+                 from ../Core/Src/BroadcastServer_task.c:8:
+../Core/Inc/Methodes.h:107:24: warning: 'ntp_pcb' defined but not used [-Wunused-variable]
+  107 | static struct udp_pcb *ntp_pcb;
+      |                        ^~~~~~~
+In file included from ../Core/Inc/tasks.h:20,
+                 from ../Core/Src/Client_task.c:9:
+../Core/Inc/Methodes.h:107:24: warning: 'ntp_pcb' defined but not used [-Wunused-variable]
+  107 | static struct udp_pcb *ntp_pcb;
+      |                        ^~~~~~~
+../Core/Src/main.c: In function 'main':
+../Core/Src/main.c:187:3: warning: "/*" within comment [-Wcomment]
+  187 |   /* USER CODE END 2 */
+      |    
+../Core/Src/Methodes.c: In function 'sync_rtc_with_ntp':
+../Core/Src/Methodes.c:52:29: warning: implicit declaration of function 'dns_gethostbyname' [-Wimplicit-function-declaration]
+   52 |                 err_t err = dns_gethostbyname(hostname, &ntp_ip, NULL, NULL);
+      |                             ^~~~~~~~~~~~~~~~~
+../Core/Src/Methodes.c:61:33: warning: incompatible implicit declaration of built-in function 'memcpy' [-Wbuiltin-declaration-mismatch]
+   61 |                                 memcpy(p->payload, ntp_request, sizeof(ntp_request));
+      |                                 ^~~~~~
+../Core/Src/Methodes.c:61:33: note: include '<string.h>' or provide a declaration of 'memcpy'
+../Core/Src/Methodes.c: In function 'computeRMS':
+../Core/Src/Methodes.c:89:12: warning: implicit declaration of function 'sqrtf' [-Wimplicit-function-declaration]
+   89 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/Server_task.c: In function 'StartServerTask':
+../Core/Src/Methodes.c:8:1: note: include '<math.h>' or provide a declaration of 'sqrtf'
+    7 | #include "Methodes.h"
+  +++ |+#include <math.h>
+    8 | 
+../Core/Src/Methodes.c:89:12: warning: incompatible implicit declaration of built-in function 'sqrtf' [-Wbuiltin-declaration-mismatch]
+   89 |     return sqrtf(sumSq / len);
+      |            ^~~~~
+../Core/Src/Methodes.c:89:12: note: include '<math.h>' or provide a declaration of 'sqrtf'
+../Core/Src/Server_task.c:92:48: warning: implicit declaration of function 'get_node_index' [-Wimplicit-function-declaration]
+   92 |                                 uint8_t node = get_node_index(msg);
+      |                                                ^~~~~~~~~~~~~~
+../Core/Src/Methodes.c: In function 'store_broadcast_ip':
+../Core/Src/Methodes.c:98:13: warning: implicit declaration of function 'strcmp' [-Wimplicit-function-declaration]
+   98 |         if (strcmp(broadcast_ip_list[i], iptxt) == 0)
+      |             ^~~~~~
+../Core/Src/Methodes.c:98:13: note: include '<string.h>' or provide a declaration of 'strcmp'
+../Core/Src/Methodes.c:109:5: warning: implicit declaration of function 'strncpy' [-Wimplicit-function-declaration]
+  109 |     strncpy(broadcast_ip_list[ip_count], iptxt, 16);
+      |     ^~~~~~~
+In file included from ../Core/Inc/tasks.h:20,
+                 from ../Core/Src/ADC_task.c:8:
+../Core/Inc/Methodes.h:107:24: warning: 'ntp_pcb' defined but not used [-Wunused-variable]
+  107 | static struct udp_pcb *ntp_pcb;
+      |                        ^~~~~~~
+../Core/Src/Methodes.c:109:5: note: include '<string.h>' or provide a declaration of 'strncpy'
+../Core/Src/Methodes.c:109:5: warning: incompatible implicit declaration of built-in function 'strncpy' [-Wbuiltin-declaration-mismatch]
+../Core/Src/Methodes.c:109:5: note: include '<string.h>' or provide a declaration of 'strncpy'
+../Core/Src/Methodes.c: In function 'extract_data':
+../Core/Src/Methodes.c:163:22: warning: implicit declaration of function 'strstr' [-Wimplicit-function-declaration]
+  163 |     const char *pt = strstr(msg, "\"timestamp\"");
+      |                      ^~~~~~
+../Core/Src/Methodes.c:163:22: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/Methodes.c:163:22: warning: incompatible implicit declaration of built-in function 'strstr' [-Wbuiltin-declaration-mismatch]
+../Core/Src/Methodes.c:163:22: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/Methodes.c: In function 'fram_update_rms':
+../Core/Src/Methodes.c:212:10: warning: implicit declaration of function 'fabsf' [-Wimplicit-function-declaration]
+  212 |         (fabsf(new_x) > fabsf(stored.rms_x)) ||
+      |          ^~~~~
+../Core/Src/Methodes.c:212:10: note: include '<math.h>' or provide a declaration of 'fabsf'
+../Core/Src/Methodes.c:212:10: warning: incompatible implicit declaration of built-in function 'fabsf' [-Wbuiltin-declaration-mismatch]
+../Core/Src/Methodes.c:212:10: note: include '<math.h>' or provide a declaration of 'fabsf'
+../Core/Src/Methodes.c: In function 'get_node_index':
+../Core/Src/Methodes.c:234:9: warning: incompatible implicit declaration of built-in function 'strstr' [-Wbuiltin-declaration-mismatch]
+  234 |     if (strstr(msg, "nucleo-01")) return 11;
+      |         ^~~~~~
+../Core/Src/Methodes.c:234:9: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/Methodes.c:235:9: warning: incompatible implicit declaration of built-in function 'strstr' [-Wbuiltin-declaration-mismatch]
+  235 |     if (strstr(msg, "nucleo-14")) return 12;
+      |         ^~~~~~
+../Core/Src/Methodes.c:235:9: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/Methodes.c:236:9: warning: incompatible implicit declaration of built-in function 'strstr' [-Wbuiltin-declaration-mismatch]
+  236 |     if (strstr(msg, "nucleo-08")) return 13;
+      |         ^~~~~~
+../Core/Src/Methodes.c:236:9: note: include '<string.h>' or provide a declaration of 'strstr'
+../Core/Src/Methodes.c: In function 'rms_magnitude':
+../Core/Src/Methodes.c:241:16: warning: incompatible implicit declaration of built-in function 'fabsf' [-Wbuiltin-declaration-mismatch]
+  241 |     float ax = fabsf(x);
+      |                ^~~~~
+../Core/Src/Methodes.c:241:16: note: include '<math.h>' or provide a declaration of 'fabsf'
+../Core/Src/Methodes.c:244:12: warning: implicit declaration of function 'fmaxf' [-Wimplicit-function-declaration]
+  244 |     return fmaxf(ax, fmaxf(ay, az));
+      |            ^~~~~
+../Core/Src/Methodes.c:244:12: note: include '<math.h>' or provide a declaration of 'fmaxf'
+../Core/Src/Methodes.c:244:12: warning: incompatible implicit declaration of built-in function 'fmaxf' [-Wbuiltin-declaration-mismatch]
+../Core/Src/Methodes.c:244:12: note: include '<math.h>' or provide a declaration of 'fmaxf'
+../Core/Src/Methodes.c: In function 'fram_update_top10':
+../Core/Src/Methodes.c:249:15: warning: variable 'weakest' set but not used [-Wunused-but-set-variable]
+  249 |     FramRMS_t weakest;
+      |               ^~~~~~~
+../Core/Src/main.c: In function 'StartDefaultTask':
+../Core/Src/main.c:760:9: warning: implicit declaration of function 'dns_setserver' [-Wimplicit-function-declaration]
+  760 |         dns_setserver(0, &dnsserver);
+      |         ^~~~~~~~~~~~~
+../Core/Src/main.c: In function 'LogMessageTask':
+../Core/Src/main.c:791:66: warning: implicit declaration of function 'strlen' [-Wimplicit-function-declaration]
+  791 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:30:1: note: include '<string.h>' or provide a declaration of 'strlen'
+   29 | #include "Methodes.h"
+  +++ |+#include <string.h>
+   30 | //#include "ethernetif.h
+../Core/Src/main.c:791:66: warning: incompatible implicit declaration of built-in function 'strlen' [-Wbuiltin-declaration-mismatch]
+  791 |                  HAL_UART_Transmit(&huart3,(uint8_t *)&msg.text, strlen(msg.text),
+      |                                                                  ^~~~~~
+../Core/Src/main.c:791:66: note: include '<string.h>' or provide a declaration of 'strlen'
+In file included from ../Core/Src/main.c:29:
+../Core/Inc/Methodes.h: At top level:
+../Core/Inc/Methodes.h:107:24: warning: 'ntp_pcb' defined but not used [-Wunused-variable]
+  107 | static struct udp_pcb *ntp_pcb;
+      |                        ^~~~~~~
+../Core/Src/Server_task.c:94:33: warning: implicit declaration of function 'fram_update_rms'; did you mean 'fram_update_top10'? [-Wimplicit-function-declaration]
+   94 |                                 fram_update_rms(node, rx, ry, rz,t);
+      |                                 ^~~~~~~~~~~~~~~
+      |                                 fram_update_top10
+../Core/Src/Methodes.c: In function 'RTC_ReadTime':
+../Core/Src/Server_task.c:26:19: warning: unused variable 'client_ip' [-Wunused-variable]
+   26 |         ip_addr_t client_ip;
+      |                   ^~~~~~~~~
+../Core/Src/Methodes.c:307:20: warning: implicit declaration of function 'BCD_to_DEC' [-Wimplicit-function-declaration]
+  307 |     rtc->seconds = BCD_to_DEC(buffer[0] & 0x7F);
+      |                    ^~~~~~~~~~
+In file included from ../Core/Inc/tasks.h:20,
+                 from ../Core/Src/Server_task.c:8:
+../Core/Inc/Methodes.h: At top level:
+../Core/Inc/Methodes.h:107:24: warning: 'ntp_pcb' defined but not used [-Wunused-variable]
+  107 | static struct udp_pcb *ntp_pcb;
+      |                        ^~~~~~~
+../Core/Src/Methodes.c: In function 'RTC_SetTime':
+../Core/Src/Methodes.c:323:15: warning: implicit declaration of function 'DEC_to_BCD' [-Wimplicit-function-declaration]
+  323 |     data[1] = DEC_to_BCD(rtc.seconds);  // seconds
+      |               ^~~~~~~~~~
+../Core/Src/Methodes.c: In function 'FRAM_Read':
+../Core/Src/Methodes.c:156:12: warning: 'rx' is used uninitialized [-Wuninitialized]
+  156 |     return rx;
+      |            ^~
+../Core/Src/Methodes.c:142:13: note: 'rx' was declared here
+  142 |     uint8_t rx;
+      |             ^~
+arm-none-eabi-gcc -o "m13_iot_ping.elf" @"objects.list"   -mcpu=cortex-m7 -T"D:\FICHIERS\Thibault\Documents\M1\µControlleur\Projet\Projet-de-reseau-embarqu-Detection-distribuee-de-secousses-sismiques\m13_iot_ping\STM32F767ZITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="m13_iot_ping.map" -Wl,--gc-sections -static -u _printf_float -u _printf_float -u _scanf_float --specs=nano.specs -mfpu=fpv5-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: m13_iot_ping.elf
+ 
 arm-none-eabi-size  m13_iot_ping.elf 
+arm-none-eabi-objdump -h -S m13_iot_ping.elf  > "m13_iot_ping.list"
    text	   data	    bss	    dec	    hex	filename
- 161696	    840	 429544	 592080	  908d0	m13_iot_ping.elf
+ 162756	    840	 429544	 593140	  90cf4	m13_iot_ping.elf
 Finished building: default.size.stdout
  
+Finished building: m13_iot_ping.list
+ 
 
-14:34:13 Build Finished. 0 errors, 0 warnings. (took 756ms)
+18:14:47 Build Finished. 0 errors, 38 warnings. (took 2s.541ms)
 

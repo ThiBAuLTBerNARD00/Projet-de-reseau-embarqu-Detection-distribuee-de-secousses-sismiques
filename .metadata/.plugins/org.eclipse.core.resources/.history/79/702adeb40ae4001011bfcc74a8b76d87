@@ -1,0 +1,327 @@
+/*
+ * Methodes.c
+ *
+ *  Created on: Dec 26, 2025
+ *      Author: thiba
+ */
+#include "Methodes.h"
+
+
+bool is_synced =false;
+void log_message(const char *format, ...) {
+    static uint8_t msg_id = 0;
+    Message_t msg;
+
+    msg.id = msg_id++;
+
+    va_list args;
+    va_start(args, format);
+    vsnprintf(msg.text, sizeof(msg.text), format, args);
+    va_end(args);
+
+    osMessagePut(messageQueueHandle, (uint32_t) &msg, 0);
+}
+void ntp_receive(void *arg, struct udp_pcb *pcb, struct pbuf *p, const ip_addr_t *addr, u16_t port) {
+	if (p->len >= 48) {
+		uint32_t timestamp;
+		memcpy(&timestamp, (uint8_t *)p->payload + 40, 4);
+		timestamp = ntohl(timestamp)-NTP_TIMESTAMP_DELTA;
+		time_t rawtime = timestamp;
+		struct tm *timeinfo = gmtime(&rawtime);
+		RTC_TimeTypeDef sTime;
+		RTC_DateTypeDef sDate;
+		sTime.Hours = timeinfo->tm_hour+1;
+		sTime.Minutes = timeinfo->tm_min;
+		sTime.Seconds = timeinfo->tm_sec;
+		sDate.Year = timeinfo->tm_year-100; // STM32: année depuis 2000
+		sDate.Month = timeinfo->tm_mon + 1;
+		sDate.Date = timeinfo->tm_mday;
+		sDate.WeekDay = timeinfo->tm_wday + 1;
+		HAL_RTC_SetTime(&hrtc, &sTime, RTC_FORMAT_BIN);
+		HAL_RTC_SetDate(&hrtc, &sDate, RTC_FORMAT_BIN);
+		is_synced = true;
+	}
+	pbuf_free(p);
+	udp_remove(pcb);
+}
+void sync_rtc_with_ntp() {
+	ip_addr_t ntp_ip;
+	const char *hostname = NTP_SERVER;
+	if (netif_is_up(&gnetif) && !ip_addr_isany(&gnetif.ip_addr)) {
+		ip_addr_t ip;
+		err_t err = dns_gethostbyname(hostname, &ntp_ip, NULL, NULL);
+		if (err == ERR_OK) {
+			log_message("NTP server found : %s.\r\n", ipaddr_ntoa(&ip));
+			ntp_pcb = udp_new();
+			if (ntp_pcb != NULL) {
+				udp_recv(ntp_pcb, ntp_receive, NULL);
+				uint8_t ntp_request[48] = {0};
+				ntp_request[0] = 0x1B; // LI = 0, VN = 3, Mode = 3 (client)
+				struct pbuf *p = pbuf_alloc(PBUF_TRANSPORT, sizeof(ntp_request), PBUF_RAM);
+				memcpy(p->payload, ntp_request, sizeof(ntp_request));
+				udp_connect(ntp_pcb, &ntp_ip, NTP_PORT);
+				udp_send(ntp_pcb, p);
+				pbuf_free(p);
+			}
+			else {
+				log_message("Failed to sync. time!\r\n");
+			}
+		} else {
+			log_message("Failed to resolve NTP_SERVER name (%d)!\r\n", err);
+		}
+		}
+	else {
+		log_message("Device is not ready!\r\n");
+	}
+}
+float movingAverage(float previous, float newSample)
+{
+    const float alpha = 1.0f / MA_WINDOW;  // poids 10%
+    return previous + alpha * (newSample - previous);
+}
+
+float computeRMS(float *buffer, uint16_t len)
+{
+    float sumSq = 0;
+    for (uint16_t i = 0; i < len; i++)
+        sumSq += buffer[i] * buffer[i];
+
+    return sqrtf(sumSq / len);
+}
+void store_broadcast_ip(const ip_addr_t *addr)
+{
+    const char *iptxt = ipaddr_ntoa(addr);
+
+    // Vérifier si déjà existante
+    for (uint8_t i = 0; i < ip_count; i++)
+    {
+        if (strcmp(broadcast_ip_list[i], iptxt) == 0)
+            return;  // déjà stockée
+    }
+
+    // Vérifier capacité
+    if (ip_count >= MAX_IPS)
+    {
+        log_message("[BROADCAST] Liste IP pleine (%d)\r\n", MAX_IPS);
+        return;
+    }
+    // Ajouter nouvelle IP
+    strncpy(broadcast_ip_list[ip_count], iptxt, 16);
+    broadcast_ip_list[ip_count][15] = '\0';
+
+    if (ip_count < MAX_IPS)
+        ip_count++;
+
+    log_message("[BROADCAST] Nouvelle IP enregistrée : %s\r\n", iptxt);
+}
+void FRAM_Write(uint16_t addr, uint8_t *data, uint8_t length)
+{
+    uint8_t buf[5];
+
+    /* Enable Write */
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_RESET);
+    buf[0] = EEPROM_WREN;
+    HAL_SPI_Transmit(&hspi2, buf, 1, 100);
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_SET);
+
+    /* Write command + address + data */
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_RESET);
+    buf[0] = EEPROM_WRITE;
+    buf[1] = (addr >> 16);
+    buf[2] = (addr>>8);
+    buf[3] = addr &0xFF;
+
+    HAL_SPI_Transmit(&hspi2, buf, 4, 1000);
+    HAL_SPI_Transmit(&hspi2, data, length, 100);
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_SET);
+}
+
+uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length)
+{
+    uint8_t tx[4];
+    uint8_t rx;
+
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_RESET);
+
+    tx[0] = EEPROM_READ;
+    tx[1] = (addr >> 16);
+    tx[2] = (addr>>8);
+    tx[3] = addr ;
+
+    HAL_SPI_Transmit(&hspi2, tx, 4, 100);
+    HAL_SPI_Receive(&hspi2, buffer, length, 100);
+
+    HAL_GPIO_WritePin(GPIOD, PIN_CS_Pin, GPIO_PIN_SET);
+
+    return rx;
+}
+bool extract_rms_xyz(const char *msg, float *rx, float *ry, float *rz)
+{
+    const char *px = strstr(msg, "\"x\"");
+    const char *py = strstr(msg, "\"y\"");
+    const char *pz = strstr(msg, "\"z\"");
+
+    if (!px || !py || !pz)
+        return false;
+
+    if (sscanf(px, "\"x\"%*[^-0123456789.]%f", rx) != 1)
+        return false;
+    if (sscanf(py, "\"y\"%*[^-0123456789.]%f", ry) != 1)
+        return false;
+    if (sscanf(pz, "\"z\"%*[^-0123456789.]%f", rz) != 1)
+        return false;
+
+    return true;
+}
+
+void fram_update_rms(uint8_t node_index,float new_x, float new_y, float new_z)
+{
+    FramRMS_t stored = {0};
+
+    uint16_t addr = FRAM_BASE_ADDR + node_index * sizeof(FramRMS_t);//FRAM_NODE_SIZE;
+
+    FRAM_Read(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
+
+    bool updated = false;
+
+    if (fabsf(new_x) > fabsf(stored.rms_x)) {
+        stored.rms_x = new_x;
+        updated = true;
+    }
+    if (fabsf(new_y) > fabsf(stored.rms_y)) {
+        stored.rms_y = new_y;
+        updated = true;
+    }
+    if (fabsf(new_z) > fabsf(stored.rms_z)) {
+        stored.rms_z = new_z;
+        updated = true;
+    }
+
+    if (updated) {
+        FRAM_Write(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
+        log_message("[FRAM] RMS updated for node %d (X=%.3f Y=%.3f Z=%.3f)\r\n",node_index,stored.rms_x, stored.rms_y, stored.rms_z);
+    }
+}
+uint8_t get_node_index(const char *msg)
+{
+    if (strstr(msg, "\"id\":\"nucleo-01\"")) return 0;
+    if (strstr(msg, "\"id\":\"nucleo-14\"")) return 1;
+    if (strstr(msg, "\"id\":\"nucleo-08\"")) return 2;
+    return 9; // inconnu
+}
+float rms_magnitude(float x, float y, float z)
+{
+    float ax = fabsf(x);
+    float ay = fabsf(y);
+    float az = fabsf(z);
+    return fmaxf(ax, fmaxf(ay, az));
+}
+void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t)
+{
+    FramRMS_t node;
+    FramRMS_t weakest;
+    uint8_t weakest_idx = 0;
+    bool found_empty = false;
+
+    float new_mag = rms_magnitude(new_x, new_y, new_z);
+    float weakest_mag = 1e9f;
+
+    for (uint8_t i = 0; i < MAX_NODES; i++)
+    {
+        uint16_t addr = FRAM_BASE_ADDR + i * FRAM_NODE_SIZE;
+        FRAM_Read(addr, (uint8_t*)&node, sizeof(FramRMS_t));
+
+        /* Case entrée vide (supposée à 0) */
+        if (node.rms_x == 0 && node.rms_y == 0 && node.rms_z == 0)
+        {
+            weakest_idx = i;
+            found_empty = true;
+            break;
+        }
+
+        float mag = rms_magnitude(node.rms_x, node.rms_y, node.rms_z);
+        if (mag < weakest_mag)
+        {
+            weakest_mag = mag;
+            weakest_idx = i;
+            weakest = node;
+        }
+    }
+
+    if (found_empty || new_mag > weakest_mag)
+    {
+        FramRMS_t newNode;
+        newNode.rms_x = new_x;
+        newNode.rms_y = new_y;
+        newNode.rms_z = new_z;
+        newNode.time  = *t;
+
+        uint16_t addr = FRAM_BASE_ADDR + weakest_idx * FRAM_NODE_SIZE;
+        FRAM_Write(addr, (uint8_t*)&newNode, sizeof(FramRMS_t));
+
+        log_message("[FRAM] TOP10 update idx=%d X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
+                    weakest_idx,
+                    new_x, new_y, new_z,
+                    t->hours, t->minutes, t->seconds);
+    }
+}
+
+HAL_StatusTypeDef RTC_ReadTime(RTC_extern *rtc)
+{
+    uint8_t buffer[7];   // seconds + minutes
+    uint8_t start_addr = 0x00;  // seconds register
+
+    if(HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, &start_addr, 1, HAL_MAX_DELAY) != HAL_OK)
+        return HAL_ERROR;
+
+    if(HAL_I2C_Master_Receive(&hi2c1, BQ32000_ADDRESS, buffer, 7, HAL_MAX_DELAY) != HAL_OK)
+        return HAL_ERROR;
+
+    rtc->seconds = BCD_to_DEC(buffer[0] & 0x7F);
+    rtc->minutes = BCD_to_DEC(buffer[1] & 0x7F);
+    rtc->hours   = BCD_to_DEC(buffer[2] & 0x3F);
+    rtc->day     = BCD_to_DEC(buffer[3] & 0x07);
+    rtc->date    = BCD_to_DEC(buffer[4] & 0x3F);
+    rtc->month   = BCD_to_DEC(buffer[5] & 0x1F);
+    rtc->year    = BCD_to_DEC(buffer[6]);
+
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef RTC_SetTime(RTC_extern rtc)
+{
+    uint8_t data[8];
+
+    data[0] = 0x00;  // start register
+    data[1] = DEC_to_BCD(rtc.seconds);  // seconds
+    data[2] = DEC_to_BCD(rtc.minutes);  // minutes
+    data[3] = DEC_to_BCD(rtc.hours);    // hours
+    data[4] = DEC_to_BCD(rtc.day);         // 1–7
+    data[5] = DEC_to_BCD(rtc.date);        // 1–31
+    data[6] = DEC_to_BCD(rtc.month);       // 1–12
+    data[7] = DEC_to_BCD(rtc.year);        // 0–99
+
+    if (HAL_I2C_Master_Transmit(&hi2c1, BQ32000_ADDRESS, data, 8, HAL_MAX_DELAY) != HAL_OK)
+        return HAL_ERROR;
+
+    return HAL_OK;
+}
+
+void rtc_get_timestamp(char *buffer, RTC_extern *rtc)
+{
+    if (!buffer || !rtc)
+        return;
+    uint8_t len = 32;
+    snprintf(buffer, len,
+             "20%02u-%02u-%02uT%02u:%02u:%02uZ",
+             rtc->year,
+             rtc->month,
+             rtc->date,
+             rtc->hours,
+             rtc->minutes,
+             rtc->seconds);
+
+}
+
+
+
