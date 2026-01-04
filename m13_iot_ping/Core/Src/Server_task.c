@@ -85,16 +85,16 @@ void StartServerTask(void const * argument)
                         }/* -------- DATA RESPONSE -------- */
                         else if (strstr(msg, "data"))
                         {
-                            float rx, ry, rz;
-
-                            if (extract_rms_xyz(msg, &rx, &ry, &rz))
+                        	FramRMS_t recep;
+                            if (extract_data(msg, &recep))
                             {
                                 uint8_t node = get_node_index(msg);
 
-                                fram_update_rms(node, rx, ry, rz);
+                                fram_update_rms(node, &recep);
 
                                 log_message("[SERVER] RMS received from node %d : X=%.3f Y=%.3f Z=%.3f\r\n",
-                                            node, rx, ry, rz);
+                                            node, recep.rms_x, recep.rms_y, recep.rms_z);
+
                                 osDelay(15);
                             }
                             else

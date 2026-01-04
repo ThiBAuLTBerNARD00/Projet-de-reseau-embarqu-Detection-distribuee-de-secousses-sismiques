@@ -64,9 +64,13 @@ void StartADCTask(void const * argument)
 		      float avgZ = sumZ / (float)SAMPLES;
 
 		      // Conversion -> tensions -> acceleration
-		      float ax = (3.3f * avgX / 4095.0f) - 1.65f;  // centrage
+		     /* float ax = (3.3f * avgX / 4095.0f) - 1.65f;  // centrage
 		      float ay = (3.3f * avgY / 4095.0f) - 1.65f;
-		      float az = (3.3f * avgZ / 4095.0f) - 1.65f;
+		      float az = (3.3f * avgZ / 4095.0f) - 1.65f;*/
+		      float ax =avgX;
+		      float ay = avgY;
+		      float az = avgZ;
+
 
 		      // --------------------------------------------------------
 		      // 2) MOYENNE GLISSANTE
@@ -94,6 +98,14 @@ void StartADCTask(void const * argument)
 		          rmsX = computeRMS(rmsBufX, RMS_WINDOW);
 		          rmsY = computeRMS(rmsBufY, RMS_WINDOW);
 		          rmsZ = computeRMS(rmsBufZ, RMS_WINDOW);
+
+
+		          /* Horodatage */
+		          RTC_extern now;
+		          RTC_ReadTime(&now);
+
+		          /* Top10 */
+		          fram_update_top10(rmsX, rmsY, rmsZ, &now);
 
 		          // --------------------------------------------------------
 		          // 4) DÉTECTION DE SECOUSSE

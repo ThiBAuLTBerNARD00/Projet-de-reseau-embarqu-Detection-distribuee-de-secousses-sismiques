@@ -155,8 +155,40 @@ uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length)
 
     return rx;
 }
-bool extract_rms_xyz(const char *msg, float *rx, float *ry, float *rz)
+
+bool extract_data(const char *msg, FramRMS_t *data)
 {
+    if (!msg || !data)
+        return false;
+
+    /* =====================
+     * Extraction timestamp
+     * ===================== */
+    const char *pt = strstr(msg, "\"timestamp\"");
+    if (!pt)
+        return false;
+
+    char ts[32];
+    if (sscanf(pt, "\"timestamp\":\"%31[^\"]\"", ts) != 1)
+        return false;
+
+    /* Conversion ISO8601 -> RTC_extern
+       Format : 2025-01-02T14:23:45Z */
+    if (sscanf(ts, "%4hhu-%2hhu-%2hhuT%2hhu:%2hhu:%2hhuZ",
+               &data->time.year,
+               &data->time.month,
+               &data->time.date,
+               &data->time.hours,
+               &data->time.minutes,
+               &data->time.seconds) != 6)
+        return false;
+
+    data->time.year -= 2000;   // format STM32
+
+    /* =====================
+     * Extraction accélérations RMS
+     * ===================== */
+
     const char *px = strstr(msg, "\"x\"");
     const char *py = strstr(msg, "\"y\"");
     const char *pz = strstr(msg, "\"z\"");
@@ -164,50 +196,118 @@ bool extract_rms_xyz(const char *msg, float *rx, float *ry, float *rz)
     if (!px || !py || !pz)
         return false;
 
-    if (sscanf(px, "\"x\"%*[^-0123456789.]%f", rx) != 1)
+
+    if (sscanf(px, "\"x\"%*[^-0123456789.]%f", &data->rms_x) != 1)
         return false;
-    if (sscanf(py, "\"y\"%*[^-0123456789.]%f", ry) != 1)
+    if (sscanf(py, "\"y\"%*[^-0123456789.]%f", &data->rms_y) != 1)
         return false;
-    if (sscanf(pz, "\"z\"%*[^-0123456789.]%f", rz) != 1)
+    if (sscanf(pz, "\"z\"%*[^-0123456789.]%f", &data->rms_z) != 1)
         return false;
+
+    /* =====================
+     * Extraction statut secousse
+     * ===================== */
+    data->shake = (strstr(msg, "\"status\":\"secousse\"") != NULL);
 
     return true;
 }
 
-void fram_update_rms(uint8_t node_index,float new_x, float new_y, float new_z)
+void fram_update_rms(uint8_t node_index, const FramRMS_t *new_data)
 {
+    if (!new_data)
+        return;
+
     FramRMS_t stored = {0};
 
-    uint16_t addr = FRAM_BASE_ADDR + node_index * FRAM_NODE_SIZE;
+    uint16_t addr = FRAM_BASE_ADDR + node_index * sizeof(FramRMS_t);
 
-    FRAM_Read(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
+    FRAM_Read(addr, (uint8_t *)&stored, sizeof(FramRMS_t));
 
-    bool updated = false;
+    /* Condition : si UN des axes est plus grand */
+    bool update =
+        (fabsf(new_data->rms_x) > fabsf(stored.rms_x)) ||
+        (fabsf(new_data->rms_y) > fabsf(stored.rms_y)) ||
+        (fabsf(new_data->rms_z) > fabsf(stored.rms_z));
 
-    if (fabsf(new_x) > fabsf(stored.rms_x)) {
-        stored.rms_x = new_x;
-        updated = true;
-    }
-    if (fabsf(new_y) > fabsf(stored.rms_y)) {
-        stored.rms_y = new_y;
-        updated = true;
-    }
-    if (fabsf(new_z) > fabsf(stored.rms_z)) {
-        stored.rms_z = new_z;
-        updated = true;
-    }
+    if (update)
+    {
+        /* Écriture directe de la structure */
+        FRAM_Write(addr, (const uint8_t *)new_data, sizeof(FramRMS_t));
 
-    if (updated) {
-        FRAM_Write(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
-        log_message("[FRAM] RMS updated for node %d (X=%.3f Y=%.3f Z=%.3f)\r\n",node_index,stored.rms_x, stored.rms_y, stored.rms_z);
+        log_message("[FRAM] RMS updated node %d -> "
+                    "X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
+                    node_index,
+                    new_data->rms_x,
+                    new_data->rms_y,
+                    new_data->rms_z,
+                    new_data->time.hours,
+                    new_data->time.minutes,
+                    new_data->time.seconds);
     }
 }
+
 uint8_t get_node_index(const char *msg)
 {
-    if (strstr(msg, "\"id\":\"nucleo-01\"")) return 0;
-    if (strstr(msg, "\"id\":\"nucleo-14\"")) return 1;
-    if (strstr(msg, "\"id\":\"nucleo-08\"")) return 2;
-    return 9; // inconnu
+    if (strstr(msg, "nucleo-01")) return 11;
+    if (strstr(msg, "nucleo-14")) return 12;
+    if (strstr(msg, "nucleo-08")) return 13;
+    return 14; // inconnu
+}
+float rms_magnitude(float x, float y, float z)
+{
+    float ax = fabsf(x);
+    float ay = fabsf(y);
+    float az = fabsf(z);
+    return fmaxf(ax, fmaxf(ay, az));
+}
+void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t)
+{
+    FramRMS_t node;
+    FramRMS_t weakest;
+    uint8_t weakest_idx = 0;
+    bool found_empty = false;
+
+    float new_mag = rms_magnitude(new_x, new_y, new_z);
+    float weakest_mag = 1e9f;
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        uint16_t addr = FRAM_BASE_ADDR + i * FRAM_NODE_SIZE;
+        FRAM_Read(addr, (uint8_t*)&node, sizeof(FramRMS_t));
+
+        /* Case entrée vide (supposée à 0) */
+        if (node.rms_x == 0 && node.rms_y == 0 && node.rms_z == 0)
+        {
+            weakest_idx = i;
+            found_empty = true;
+            break;
+        }
+
+        float mag = rms_magnitude(node.rms_x, node.rms_y, node.rms_z);
+        if (mag < weakest_mag)
+        {
+            weakest_mag = mag;
+            weakest_idx = i;
+            weakest = node;
+        }
+    }
+
+    if (found_empty || new_mag > weakest_mag)
+    {
+        FramRMS_t newNode;
+        newNode.rms_x = new_x;
+        newNode.rms_y = new_y;
+        newNode.rms_z = new_z;
+        newNode.time  = *t;
+
+        uint16_t addr = FRAM_BASE_ADDR + weakest_idx * FRAM_NODE_SIZE;
+        FRAM_Write(addr, (uint8_t*)&newNode, sizeof(FramRMS_t));
+
+        log_message("[FRAM] TOP10 update idx=%d X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
+                    weakest_idx,
+                    new_x, new_y, new_z,
+                    t->hours, t->minutes, t->seconds);
+    }
 }
 
 
@@ -267,4 +367,5 @@ void rtc_get_timestamp(char *buffer, RTC_extern *rtc)
              rtc->seconds);
 
 }
+
 

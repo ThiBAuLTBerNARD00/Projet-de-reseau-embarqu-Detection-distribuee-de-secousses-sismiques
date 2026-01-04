@@ -25,7 +25,10 @@ void StartBroadCast(void const * argument)
 	const char *device_id = "nucleo-01";
 	const char *my_ip = "192.168.1.180";   //
 	uint16_t len=0;
-	uint16_t err=0;
+
+
+	//uint16_t err=0;
+
 	ip_addr_t dest_ip;
 	RTC_extern rtc;
 	IP4_ADDR(&dest_ip, 192,168,1,255);       //

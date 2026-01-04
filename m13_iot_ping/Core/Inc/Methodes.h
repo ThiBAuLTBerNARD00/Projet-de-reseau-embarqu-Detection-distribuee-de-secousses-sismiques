@@ -75,13 +75,10 @@ extern char ts[32];
 #define EEPROM_WRITE	0x02
 #define EEPROM_READ	0x03
 #define FRAM_BASE_ADDR     0x0000
-#define FRAM_NODE_SIZE    16    // 3 floats (12 octets) + marge
-#define MAX_NODES         12
-typedef struct {
-    float rms_x;
-    float rms_y;
-    float rms_z;
-} FramRMS_t;
+
+#define MAX_NODES         20
+
+>>>>>>> secondary
 #define BQ32000_ADDRESS 0x68 << 1
 typedef struct {
     uint8_t id;
@@ -98,6 +95,17 @@ typedef struct{
 	uint8_t seconds;
 }RTC_extern;
 
+
+
+
+typedef struct {
+    float rms_x;
+    float rms_y;
+    float rms_z;
+    RTC_extern time;
+    bool shake;
+} FramRMS_t;
+#define FRAM_NODE_SIZE    sizeof(FramRMS_t)
 
 
 /* =======================
@@ -127,6 +135,12 @@ void store_broadcast_ip(const ip_addr_t *addr);
 /* FRAM */
 void FRAM_Write(uint16_t addr, uint8_t *data, uint8_t length);
 uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length);
+
+float rms_magnitude(float x, float y, float z);
+bool extract_data(const char *msg, FramRMS_t *data);
+
+void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t);
+
 
 /* RTC externe BQ32000 */
 HAL_StatusTypeDef RTC_ReadTime(RTC_extern *rtc);

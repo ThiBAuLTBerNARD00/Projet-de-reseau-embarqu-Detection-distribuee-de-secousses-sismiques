@@ -1,0 +1,31 @@
+Debug/
+Release/
+build/
+*.o
+*.a
+*.d
+*.su
+*.elf
+*.map
+*.hex
+*.bin
+*.lst
+.metadata/
+.settings/
+.project
+.cproject
+
+#################################
+# Logs / temporaires
+####################################
+*.log
+*.tmp
+*.bak
+*~
+####################################
+# CubeMX générés
+####################################
+.mxproject
+*.ioc
+*.pcapng
+*.pcap
