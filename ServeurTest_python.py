@@ -60,7 +60,7 @@ def build_message(msg_type):
         "y": round(ay, 3),
         "z": round(az, 3)
     },
-    "status": "normal"
+    "status": "secousse"
         }
  elif msg_type == "sync":
    return {

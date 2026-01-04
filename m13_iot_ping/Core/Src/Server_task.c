@@ -26,7 +26,7 @@ void StartServerTask(void const * argument)
 	ip_addr_t client_ip;
 	RTC_extern rtc;
 	LWIP_UNUSED_ARG(argument);
-
+	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	/* create a new TCP netconn */
 	conn = netconn_new(NETCONN_TCP);
 	if (!conn) {
@@ -91,7 +91,7 @@ void StartServerTask(void const * argument)
                             	if(recep.shake && event){
                             		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, SET);
                             	}
-                            	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, RESET);
+                            	//HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, RESET);
                                 uint8_t node = get_node_index(msg);
 
                                 fram_update_rms(node, &recep);

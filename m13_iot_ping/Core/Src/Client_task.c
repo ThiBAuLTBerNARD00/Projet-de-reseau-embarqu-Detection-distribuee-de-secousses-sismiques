@@ -18,6 +18,7 @@ void StartClientTask(void const * argument)
 {
   /* USER CODE BEGIN StartClientTask */
   /* Infinite loop */
+	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	RTC_extern rtc;
 	for(;;)
  	{

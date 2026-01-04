@@ -86,6 +86,13 @@ void StartADCTask(void const * argument)
 		      float avgY = sumY / (float)SAMPLES;
 		      float avgZ = sumZ / (float)SAMPLES;
 
+		      // --------------------------------------------------------
+		      // BASELINE ADAPTATIVE LENTE (anti-dérive)
+		      // --------------------------------------------------------
+		      baselineX = 0.995f * baselineX + 0.005f * avgX;
+		      baselineY = 0.995f * baselineY + 0.005f * avgY;
+		      baselineZ = 0.995f * baselineZ + 0.005f * avgZ;
+
 		      // Conversion -> tensions -> acceleration
 		     /* float ax = (3.3f * avgX / 4095.0f) - 1.65f;  // centrage
 		      float ay = (3.3f * avgY / 4095.0f) - 1.65f;

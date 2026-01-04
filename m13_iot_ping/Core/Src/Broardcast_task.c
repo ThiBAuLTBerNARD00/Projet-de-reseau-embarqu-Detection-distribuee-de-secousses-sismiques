@@ -26,7 +26,7 @@ void StartBroadCast(void const * argument)
 	const char *my_ip = "192.168.1.180";   //
 	uint16_t len=0;
 
-
+	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	//uint16_t err=0;
 
 	ip_addr_t dest_ip;

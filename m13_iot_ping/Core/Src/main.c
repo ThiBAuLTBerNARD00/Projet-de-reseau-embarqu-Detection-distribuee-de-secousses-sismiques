@@ -93,7 +93,7 @@ float rmsX = 0, rmsY = 0, rmsZ = 0;
 float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
-float threshold = 15;   // RMS au-dessus = secousse
+float threshold = 11;   // RMS au-dessus = secousse
 char last_broadcast_ip[16] = "0.0.0.0";
 char ts[32];
 
@@ -782,6 +782,7 @@ void LogMessageTask(void const * argument)
 
 	 /* USER CODE BEGIN LogMessageTask */
 	 /* Infinite loop */
+	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	Message_t msg;
 	for (;;){
 		 osEvent evt =osMessageGet(messageQueueHandle,200);
@@ -875,7 +876,7 @@ void StartRTCTask(void const * argument)
     RTC_DateTypeDef sDate;
     RTC_extern rtc;
     bool external_rtc_updated = false;
-
+    osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
     for (;;)
     {
         /* 1️⃣ Attendre que le NTP ait synchronisé l’RTC interne */
