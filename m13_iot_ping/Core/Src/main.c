@@ -93,7 +93,7 @@ float rmsX = 0, rmsY = 0, rmsZ = 0;
 float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
-float threshold = 0.35f;   // RMS au-dessus = secousse
+float threshold = 2400;   // RMS au-dessus = secousse
 char last_broadcast_ip[16] = "0.0.0.0";
 char ts[32];
 
@@ -251,7 +251,7 @@ int main(void)
   MasterTaskHandle = osThreadCreate(osThread(MasterTask), NULL);
 
   /* definition and creation of ADCTask */
-  osThreadDef(ADCTask, StartADCTask, osPriorityIdle, 0, 1024);
+  osThreadDef(ADCTask, StartADCTask, osPriorityNormal, 0, 1024);
   ADCTaskHandle = osThreadCreate(osThread(ADCTask), NULL);
 
   /* definition and creation of ServBroadcast */

@@ -7,7 +7,7 @@
 
 #include "tasks.h"
 #include "main.h"
-
+bool event;
 
 /* USER CODE BEGIN Header_StartADCTask */
 /**
@@ -104,8 +104,7 @@ void StartADCTask(void const * argument)
 		          RTC_extern now;
 		          RTC_ReadTime(&now);
 
-		          /* Top10 */
-		          fram_update_top10(rmsX, rmsY, rmsZ, &now);
+
 
 		          // --------------------------------------------------------
 		          // 4) DÉTECTION DE SECOUSSE
@@ -114,11 +113,12 @@ void StartADCTask(void const * argument)
 		          float ampY = rmsY - baselineY;
 		          float ampZ = rmsZ - baselineZ;
 
-		          bool event =
+		          event =
 		              (ampX > threshold) ||
 		              (ampY > threshold) ||
 		              (ampZ > threshold);
-
+		          /* Top10 */
+		          fram_update_top10(rmsX, rmsY, rmsZ, &now,event);
 		          if (event)
 		          {
 		              log_message("SECOUSSE !  Amp: X=%.3f  Y=%.3f  Z=%.3f  (RMS X=%.3f Y=%.3f Z=%.3f)\r\n", ampX, ampY, ampZ, rmsX, rmsY, rmsZ);

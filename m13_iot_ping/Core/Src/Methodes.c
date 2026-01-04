@@ -169,12 +169,13 @@ bool extract_data(const char *msg, FramRMS_t *data)
         return false;
 
     char ts[32];
-    if (sscanf(pt, "\"timestamp\":\"%31[^\"]\"", ts) != 1)
+    if (sscanf(pt, "\"timestamp\": \"%31[^\"]\"", ts) != 1)
         return false;
 
     /* Conversion ISO8601 -> RTC_extern
        Format : 2025-01-02T14:23:45Z */
-    if (sscanf(ts, "%4hhu-%2hhu-%2hhuT%2hhu:%2hhu:%2hhuZ",
+
+    if (sscanf(ts, "%4u-%2u-%2uT%2u:%2u:%2uZ",
                &data->time.year,
                &data->time.month,
                &data->time.date,
@@ -207,7 +208,7 @@ bool extract_data(const char *msg, FramRMS_t *data)
     /* =====================
      * Extraction statut secousse
      * ===================== */
-    data->shake = (strstr(msg, "\"status\":\"secousse\"") != NULL);
+    data->shake = (strstr(msg, "secousse") != NULL);
 
     return true;
 }
@@ -260,7 +261,7 @@ float rms_magnitude(float x, float y, float z)
     float az = fabsf(z);
     return fmaxf(ax, fmaxf(ay, az));
 }
-void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t)
+void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t, bool event)
 {
     FramRMS_t node;
     FramRMS_t weakest;
@@ -299,7 +300,7 @@ void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t)
         newNode.rms_y = new_y;
         newNode.rms_z = new_z;
         newNode.time  = *t;
-
+        newNode.shake = event;
         uint16_t addr = FRAM_BASE_ADDR + weakest_idx * FRAM_NODE_SIZE;
         FRAM_Write(addr, (uint8_t*)&newNode, sizeof(FramRMS_t));
 

@@ -39,29 +39,19 @@ void StartClientTask(void const * argument)
 		if(conn!=NULL){
 			err=netconn_connect(conn,&server_ip,1234);
 			if(err==ERR_OK){
-				//const char *json="{\"type\": data_request, \"payload\":\"1.1;1.2;1.3;10.9;10.8;10.7 je tenmerde\"}";
-				/*RTC_ReadTime(&rtc);
-				rtc_get_timestamp(ts, &rtc);
-				const char *json ="{"
-			      		   "\"type\":\"data_request\","
-			       		   "\"from\":\"nucleo-01\","
-			       		   "\"to\":\"nucleo-14\","
-			       		   "\"timestamp\":\"2025-10-02T08:20:00Z\""
-			       		 "}";
-				log_message("[CLIENT] Sending : %s...\r\n",json);
-				netconn_write(conn,json,strlen(json),NETCONN_COPY);*/
 				char txbuf[512];
                 float ax = rmsX;
                 float ay = rmsY;
                 float az = rmsZ;
                 RTC_ReadTime(&rtc);
                 rtc_get_timestamp(ts, &rtc);
+                const char *status = (event) ? "secousse" : "normal";
                 snprintf(txbuf, sizeof(txbuf),"{\"type\":\"data_response\","
                 		"\"id\":\"nucleo-01\","
                 		"\"timestamp\":\"%s\","
                 		"\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},"
-                		"\"status\":\"normal\"}",
-						ts,ax, ay, az);
+                		"\"status\":\"%s\"}",
+						ts,ax, ay, az,status);
 				netconn_write(conn, txbuf, strlen(txbuf), NETCONN_COPY);
 				log_message("[CLIENT] Sending : %s... à %s\r\n",txbuf,ipaddr_ntoa(&server_ip));
 			}

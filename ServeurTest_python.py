@@ -1,5 +1,7 @@
 import socket
 import json
+from datetime import datetime
+
 def send_json_message(ip, port, message):
   try:
    with socket.socket(socket.AF_INET,socket.SOCK_STREAM) as sock:
@@ -45,13 +47,20 @@ def build_message(msg_type):
         }
     }
  elif msg_type == "data":
+   ts = datetime.now().isoformat()  # timestamp au format ISO 8601
+   ax = 1.234
+   ay = -0.567
+   az = 0.890
    return {
-      "type": "data_request",
-        "payload": {
-           "temperature": 23.5,
-            "humidity": 45.2,
-            "timestamp": "2025-09-01T08:33:00Z"
-            }
+      "type": "data_response",
+    "id": "nucleo-01",
+    "timestamp":"2025-09-01T08:30:00Z",
+    "acceleration": {
+        "x": round(ax, 3),
+        "y": round(ay, 3),
+        "z": round(az, 3)
+    },
+    "status": "normal"
         }
  elif msg_type == "sync":
    return {

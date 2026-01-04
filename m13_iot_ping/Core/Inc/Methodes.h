@@ -78,7 +78,7 @@ extern char ts[32];
 
 #define MAX_NODES         20
 
->>>>>>> secondary
+
 #define BQ32000_ADDRESS 0x68 << 1
 typedef struct {
     uint8_t id;
@@ -95,7 +95,7 @@ typedef struct{
 	uint8_t seconds;
 }RTC_extern;
 
-
+extern bool event;
 
 
 typedef struct {
@@ -139,7 +139,7 @@ uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length);
 float rms_magnitude(float x, float y, float z);
 bool extract_data(const char *msg, FramRMS_t *data);
 
-void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t);
+void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t, bool);
 
 
 /* RTC externe BQ32000 */
