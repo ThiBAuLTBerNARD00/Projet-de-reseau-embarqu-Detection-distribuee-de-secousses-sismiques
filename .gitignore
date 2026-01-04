@@ -10,7 +10,10 @@ build/
 *.hex
 *.bin
 *.lst
-
+.metadata/
+.settings/
+.project
+.cproject
 
 #################################
 # Logs / temporaires
