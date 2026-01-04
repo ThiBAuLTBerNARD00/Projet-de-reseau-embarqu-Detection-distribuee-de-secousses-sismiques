@@ -98,9 +98,8 @@ typedef struct {
     float rms_y;
     float rms_z;
     RTC_extern time;
-    bool shake;
 } FramRMS_t;
-#define FRAM_NODE_SIZE    sizeof(FramRMS_t)
+#define FRAM_NODE_SIZE    sizeof(FramRMS_t)    // 3 floats (12 octets) + marge
 
 /* =======================
  * Fonctions publiques
@@ -130,7 +129,7 @@ void store_broadcast_ip(const ip_addr_t *addr);
 void FRAM_Write(uint16_t addr, uint8_t *data, uint8_t length);
 uint8_t FRAM_Read(uint16_t addr, uint8_t *buffer, uint8_t length);
 float rms_magnitude(float x, float y, float z);
-bool extract_data(const char *msg, FramRMS_t *data);
+bool extract_data(const char *msg,float *rx, float *ry, float *rz,RTC_extern *t, bool shake);
 
 void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t);
 

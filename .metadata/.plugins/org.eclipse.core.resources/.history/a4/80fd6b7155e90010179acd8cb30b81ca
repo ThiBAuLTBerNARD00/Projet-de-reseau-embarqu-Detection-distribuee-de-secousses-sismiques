@@ -209,40 +209,36 @@ bool extract_data(const char *msg, FramRMS_t *data)
     return true;
 }
 
-void fram_update_rms(uint8_t node_index, const FramRMS_t *new_data)
+void fram_update_rms(uint8_t node_index,float new_x, float new_y, float new_z,RTC_extern *new_time)
 {
-    if (!new_data)
-        return;
-
     FramRMS_t stored = {0};
 
-    uint16_t addr = FRAM_BASE_ADDR + node_index * sizeof(FramRMS_t);
+    uint16_t addr = FRAM_BASE_ADDR + node_index * sizeof(FramRMS_t);//FRAM_NODE_SIZE;
 
-    FRAM_Read(addr, (uint8_t *)&stored, sizeof(FramRMS_t));
+    FRAM_Read(addr, (uint8_t*)&stored, sizeof(FramRMS_t));
 
     /* Condition : si UN des axes est plus grand */
     bool update =
-        (fabsf(new_data->rms_x) > fabsf(stored.rms_x)) ||
-        (fabsf(new_data->rms_y) > fabsf(stored.rms_y)) ||
-        (fabsf(new_data->rms_z) > fabsf(stored.rms_z));
+        (fabsf(new_x) > fabsf(stored.rms_x)) ||
+        (fabsf(new_y) > fabsf(stored.rms_y)) ||
+        (fabsf(new_z) > fabsf(stored.rms_z));
 
     if (update)
     {
-        /* Écriture directe de la structure */
-        FRAM_Write(addr, (const uint8_t *)new_data, sizeof(FramRMS_t));
+        FramRMS_t newNode;
+        newNode.rms_x = new_x;
+        newNode.rms_y = new_y;
+        newNode.rms_z = new_z;
+        newNode.time  = *new_time;
 
-        log_message("[FRAM] RMS updated node %d -> "
-                    "X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
+        FRAM_Write(addr, (uint8_t*)&newNode, sizeof(FramRMS_t));
+
+        log_message("[FRAM] RMS updated node %d -> X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
                     node_index,
-                    new_data->rms_x,
-                    new_data->rms_y,
-                    new_data->rms_z,
-                    new_data->time.hours,
-                    new_data->time.minutes,
-                    new_data->time.seconds);
+                    new_x, new_y, new_z,
+                    new_time->hours, new_time->minutes, new_time->seconds);
     }
 }
-
 uint8_t get_node_index(const char *msg)
 {
     if (strstr(msg, "nucleo-01")) return 11;

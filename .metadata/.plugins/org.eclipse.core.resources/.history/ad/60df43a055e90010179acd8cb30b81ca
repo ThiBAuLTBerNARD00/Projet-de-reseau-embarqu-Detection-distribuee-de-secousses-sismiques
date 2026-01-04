@@ -90,10 +90,10 @@ void StartServerTask(void const * argument)
                             {
                                 uint8_t node = get_node_index(msg);
 
-                                fram_update_rms(node, &recep);
+                                fram_update_rms(node, rx, ry, rz,t);
 
                                 log_message("[SERVER] RMS received from node %d : X=%.3f Y=%.3f Z=%.3f\r\n",
-                                            node, recep.rms_x, recep.rms_y, recep.rms_z);
+                                            node, rx, ry, rz);
                                 osDelay(15);
                             }
                             else
