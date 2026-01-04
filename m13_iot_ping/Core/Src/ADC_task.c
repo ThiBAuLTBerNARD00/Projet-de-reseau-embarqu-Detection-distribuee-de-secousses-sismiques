@@ -7,7 +7,29 @@
 
 #include "tasks.h"
 #include "main.h"
-bool event;
+#include <math.h>
+bool event=false;
+
+void calibrate_baseline(void) {
+    uint32_t sumX = 0, sumY = 0, sumZ = 0;
+    const int samples = 200; // 2 secondes à 100 Hz
+    for (int n = 0; n < 10; n++)   // 10 buffers complets
+    {
+        osSemaphoreWait(adcSemaphoreHandle, 1000);
+
+        for (int i = 0; i < SAMPLES; i++)
+        {
+            sumX += adc_buf[i * 3 + 0];
+            sumY += adc_buf[i * 3 + 1];
+            sumZ += adc_buf[i * 3 + 2];
+        }
+    }
+    baselineX = sumX / (float)(SAMPLES *10);
+    baselineY = sumY / (float)(SAMPLES *10);
+    baselineZ = sumZ / (float)(SAMPLES *10);
+
+    log_message("Baselines: X=%.2f Y=%.2f Z=%.2f\r\n", baselineX, baselineY, baselineZ);
+}
 
 /* USER CODE BEGIN Header_StartADCTask */
 /**
@@ -46,11 +68,12 @@ void StartADCTask(void const * argument)
 	  {
 	    log_message("ADC DMA started (len=%d)\r\n", ADC_BUF_LEN);
 	  }
-
+	  osDelay(2000);
+	  calibrate_baseline();
 	  for(;;)
 	  {
-		  //if (osSemaphoreWait(adcSemaphoreHandle, 1000) == osOK)
-		  //{
+		  if (osSemaphoreWait(adcSemaphoreHandle, 1000) == osOK)
+		  {
 		  	  sumX=sumY=sumZ=0;
 			  for (uint32_t i = 0; i < SAMPLES; i++)
 			  {
@@ -82,9 +105,9 @@ void StartADCTask(void const * argument)
 		      // --------------------------------------------------------
 		      // 3) RMS SUR 1 SECONDE (100 échantillons)
 		      // --------------------------------------------------------
-		      rmsBufX[rmsIndex] = ax;
-		      rmsBufY[rmsIndex] = ay;
-		      rmsBufZ[rmsIndex] = az;
+		      rmsBufX[rmsIndex] = ax - baselineX;
+		      rmsBufY[rmsIndex] = ay - baselineY;
+		      rmsBufZ[rmsIndex] = az - baselineZ;
 
 		      rmsIndex++;
 		      if (rmsIndex >= RMS_WINDOW)
@@ -109,29 +132,33 @@ void StartADCTask(void const * argument)
 		          // --------------------------------------------------------
 		          // 4) DÉTECTION DE SECOUSSE
 		          // --------------------------------------------------------
-		          float ampX = rmsX - baselineX;
-		          float ampY = rmsY - baselineY;
-		          float ampZ = rmsZ - baselineZ;
-
+		          float ampX = rmsX ;
+		          float ampY = rmsY ;
+		          float ampZ = rmsZ ;
+		          rmsX=rmsX+baselineX;
+		          rmsY = rmsY+ baselineY;
+		          rmsZ = rmsZ + baselineZ;
 		          event =
-		              (ampX > threshold) ||
-		              (ampY > threshold) ||
-		              (ampZ > threshold);
+		              (fabsf(ampX) > threshold) ||
+		              (fabsf(ampY) > threshold) ||
+		              (fabsf(ampZ) > threshold);
 		          /* Top10 */
 		          fram_update_top10(rmsX, rmsY, rmsZ, &now,event);
 		          if (event)
 		          {
+		        	  osDelay(10);
 		              log_message("SECOUSSE !  Amp: X=%.3f  Y=%.3f  Z=%.3f  (RMS X=%.3f Y=%.3f Z=%.3f)\r\n", ampX, ampY, ampZ, rmsX, rmsY, rmsZ);
+		              osDelay(10);
 		          }
 		          else
 		          {
 		             // log_message("Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",rmsX, rmsY, rmsZ);
 		          }
 		      }
-		  //}
+		  }
 
 
-	    osDelay(100); // laisse un peu de place pour scheduler
+	   // osDelay(100); // laisse un peu de place pour scheduler
 	  }
 
   /* USER CODE END StartADCTask */

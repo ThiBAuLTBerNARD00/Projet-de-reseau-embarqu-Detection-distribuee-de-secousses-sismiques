@@ -65,7 +65,7 @@ void StartClientTask(void const * argument)
 		log_message("[CLIENT] No connection available.\r\n");
 		}
 
-		osDelay(8000/ip_count);
+		osDelay(8000/(ip_count+1));
 
 	}
   /* USER CODE END StartClientTask */

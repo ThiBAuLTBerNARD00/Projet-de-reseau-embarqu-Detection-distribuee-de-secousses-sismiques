@@ -88,6 +88,10 @@ void StartServerTask(void const * argument)
                         	FramRMS_t recep;
                             if (extract_data(msg, &recep))
                             {
+                            	if(recep.shake && event){
+                            		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, SET);
+                            	}
+                            	HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, RESET);
                                 uint8_t node = get_node_index(msg);
 
                                 fram_update_rms(node, &recep);
