@@ -73,6 +73,7 @@ osMessageQId messageQueueHandle;
 osMutexId uartMutexHandle;
 osSemaphoreId SemaphoreMasterHandle;
 osSemaphoreId adcSemaphoreHandle;
+
 /* USER CODE BEGIN PV */
 char broadcast_ip_list[MAX_IPS][16];
 uint8_t ip_count = 0;
@@ -93,7 +94,7 @@ float rmsX = 0, rmsY = 0, rmsZ = 0;
 float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
-float threshold = 11;   // RMS au-dessus = secousse
+float threshold = 1;   // RMS au-dessus = secousse
 char last_broadcast_ip[16] = "0.0.0.0";
 char ts[32];
 
@@ -199,7 +200,7 @@ int main(void)
   /* definition and creation of SemaphoreMaster */
   osSemaphoreDef(SemaphoreMaster);
   SemaphoreMasterHandle = osSemaphoreCreate(osSemaphore(SemaphoreMaster), 1);
-
+  osSemaphoreWait(SemaphoreMasterHandle, 0);
   /* definition and creation of adcSemaphore */
   osSemaphoreDef(adcSemaphore);
   adcSemaphoreHandle = osSemaphoreCreate(osSemaphore(adcSemaphore), 1);
@@ -265,6 +266,7 @@ int main(void)
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
+
 
   /* Start scheduler */
   osKernelStart();
@@ -741,6 +743,18 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
     if(hadc->Instance == ADC1)
         osSemaphoreRelease(adcSemaphoreHandle);
 }
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == USER_Btn_Pin)
+    {
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+        osSemaphoreReleaseFromISR(SemaphoreMasterHandle);
+
+        portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+    }
+}
+
 /* USER CODE END 4 */
 
 /* USER CODE BEGIN Header_StartDefaultTask */
@@ -850,7 +864,10 @@ void StartMasterTask(void const * argument)
 	                log_message("User button pressed. Starting system...\r\n");
 
 	                // Donner le sémaphore pour débloquer les autres tasks
-	                osSemaphoreRelease(SemaphoreMasterHandle);
+	                for(int i = 0; i < 10; i++)
+	                {
+	                    osSemaphoreRelease(SemaphoreMasterHandle);
+	                }
 	            }
 	        }
 

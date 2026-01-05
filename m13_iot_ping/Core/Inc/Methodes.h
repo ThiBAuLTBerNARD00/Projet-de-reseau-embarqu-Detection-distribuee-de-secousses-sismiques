@@ -29,7 +29,7 @@ extern osMessageQId messageQueueHandle;
 #define NTP_PORT 123
 #define NTP_TIMESTAMP_DELTA 2208988800UL // Différence entre 1900 et 1970
 #define AXIS_COUNT     3
-#define SAMPLES        64
+#define SAMPLES        16
 #define ADC_BUF_LEN    (AXIS_COUNT * SAMPLES)
 #define SAMPLE_RATE     100     // 100 Hz
 #define RMS_WINDOW      SAMPLE_RATE   // 1 seconde = 100 échantillons

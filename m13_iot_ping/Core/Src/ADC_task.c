@@ -41,22 +41,25 @@ void calibrate_baseline(void) {
 void StartADCTask(void const * argument)
 {
   /* USER CODE BEGIN StartADCTask */
-	// Attendre que le MasterTask donne l'autorisation (tu utilises déjà SemaphoreMasterHandle)
-	  osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 
-	  uint32_t sumX = 0;
-	  uint32_t sumY = 0;
-	  uint32_t sumZ = 0;
+  osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 
-	  if (HAL_TIM_Base_Start(&htim2) != HAL_OK)
-	  	{
-	  	    log_message("ERROR: TIM2 start failed!\r\n");
-	  	    vTaskDelete(NULL);
-	  	}
-	  	else
-	  	{
-	  	    log_message("TIM2 started.\r\n");
-	  	}
+  uint32_t sumX = 0;
+  uint32_t sumY = 0;
+  uint32_t sumZ = 0;
+  static float prevRMSX = 0.0f;
+  static float prevRMSY = 0.0f;
+  static float prevRMSZ = 0.0f;
+
+  if (HAL_TIM_Base_Start(&htim2) != HAL_OK)
+  {
+    log_message("ERROR: TIM2 start failed!\r\n");
+    vTaskDelete(NULL);
+  }
+  else
+  {
+	log_message("TIM2 started.\r\n");
+  }
 	  // Démarrer le timer si tu veux trig ADC par timer (ici on lance en mode software continous DMA)
 	  // Démarrer ADC en DMA (circular)
 	  if (HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adc_buf, ADC_BUF_LEN) != HAL_OK)
@@ -145,10 +148,17 @@ void StartADCTask(void const * argument)
 		          rmsX=rmsX+baselineX;
 		          rmsY = rmsY+ baselineY;
 		          rmsZ = rmsZ + baselineZ;
-		          event =
-		              (fabsf(ampX) > threshold) ||
-		              (fabsf(ampY) > threshold) ||
-		              (fabsf(ampZ) > threshold);
+		          float diffX = fabsf(ampX - prevRMSX);
+		          float diffY = fabsf(ampY - prevRMSY);
+		          float diffZ = fabsf(ampZ - prevRMSZ);
+
+		          event = (diffX > threshold) || (diffY > threshold) || (diffZ > threshold);
+
+		          // Sauvegarder le RMS actuel pour la prochaine comparaison
+		          prevRMSX = ampX;
+		          prevRMSY = ampY;
+		          prevRMSZ = ampZ;
+
 		          /* Top10 */
 		          fram_update_top10(rmsX, rmsY, rmsZ, &now,event);
 		          if (event)
@@ -159,7 +169,7 @@ void StartADCTask(void const * argument)
 		          }
 		          else
 		          {
-		             // log_message("Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",rmsX, rmsY, rmsZ);
+		              log_message("Calme : RMS X=%.3f  Y=%.3f  Z=%.3f\r\n",rmsX, rmsY, rmsZ);
 		          }
 		      }
 		  }
