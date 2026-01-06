@@ -94,7 +94,7 @@ float rmsX = 0, rmsY = 0, rmsZ = 0;
 float baselineX = 0.02f, baselineY = 0.02f, baselineZ = 0.02f;
 
 // Seuil de détection (à ajuster selon ton capteur)
-float threshold = 1;   // RMS au-dessus = secousse
+float threshold = 0.7;   // RMS au-dessus = secousse
 char last_broadcast_ip[16] = "0.0.0.0";
 char ts[32];
 
@@ -266,7 +266,10 @@ int main(void)
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   /* USER CODE END RTOS_THREADS */
-
+  osThreadSuspend(serverTaskHandle);
+  osThreadSuspend(clientTaskHandle);
+  osThreadSuspend(ADCTaskHandle);
+  osThreadSuspend(BroardCastHandle);
 
   /* Start scheduler */
   osKernelStart();
@@ -772,6 +775,7 @@ void StartDefaultTask(void const * argument)
 	ip_addr_t dnsserver;
 	IP4_ADDR(&dnsserver, 8, 8, 8, 8); //ajout d'un DNS
 	dns_setserver(0, &dnsserver);
+	fram_clear_top10();
 	/* Infinite loop */
 	for(;;)
 	{
@@ -796,7 +800,6 @@ void LogMessageTask(void const * argument)
 
 	 /* USER CODE BEGIN LogMessageTask */
 	 /* Infinite loop */
-	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	Message_t msg;
 	for (;;){
 		 osEvent evt =osMessageGet(messageQueueHandle,200);
@@ -859,16 +862,15 @@ void StartMasterTask(void const * argument)
 	            // Anti-rebond
 	            osDelay(50);
 
-	            if(HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin) == GPIO_PIN_SET)
-	            {
+	            //if(HAL_GPIO_ReadPin(USER_Btn_GPIO_Port, USER_Btn_Pin) == GPIO_PIN_SET)
+	            //{
 	                log_message("User button pressed. Starting system...\r\n");
 
-	                // Donner le sémaphore pour débloquer les autres tasks
-	                for(int i = 0; i < 10; i++)
-	                {
-	                    osSemaphoreRelease(SemaphoreMasterHandle);
-	                }
-	            }
+	                osThreadResume(serverTaskHandle);
+	                osThreadResume(clientTaskHandle);
+	                osThreadResume(ADCTaskHandle);
+	                osThreadResume(BroardCastHandle);
+	            //}
 	        }
 
 	        lastState = curr;
@@ -893,7 +895,6 @@ void StartRTCTask(void const * argument)
     RTC_DateTypeDef sDate;
     RTC_extern rtc;
     bool external_rtc_updated = false;
-    osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
     for (;;)
     {
         /* 1️⃣ Attendre que le NTP ait synchronisé l’RTC interne */

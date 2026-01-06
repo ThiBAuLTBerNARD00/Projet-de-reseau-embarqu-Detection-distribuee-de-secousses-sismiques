@@ -5,7 +5,7 @@
  *      Author: thiba
  */
 #include "Methodes.h"
-
+#include <math.h>
 
 bool is_synced =false;
 void log_message(const char *format, ...) {
@@ -249,10 +249,14 @@ void fram_update_rms(uint8_t node_index, const FramRMS_t *new_data)
 
 uint8_t get_node_index(const char *msg)
 {
-    if (strstr(msg, "nucleo-01")) return 11;
-    if (strstr(msg, "nucleo-14")) return 12;
-    if (strstr(msg, "nucleo-08")) return 13;
-    return 14; // inconnu
+    const char *p = strstr(msg, "nucleo-");
+    if (p == NULL)
+    {
+        return 0xFF; // inconnu / erreur
+    }
+
+    p += strlen("nucleo-"); // pointe sur le numéro
+    return (uint8_t)atoi(p);
 }
 float rms_magnitude(float x, float y, float z)
 {
@@ -293,7 +297,7 @@ void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t, boo
         }
     }
 
-    if (found_empty || new_mag > weakest_mag)
+    if (found_empty || isnan(new_mag) || new_mag > weakest_mag)
     {
         FramRMS_t newNode;
         newNode.rms_x = new_x;
@@ -311,6 +315,45 @@ void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t, boo
     }
 }
 
+static int rtc_is_newer(const RTC_extern *a, const RTC_extern *b)
+{
+    if (a->year   != b->year)   return a->year   > b->year;
+    if (a->month  != b->month)  return a->month  > b->month;
+    if (a->date   != b->date)   return a->date   > b->date;
+    if (a->hours  != b->hours)  return a->hours  > b->hours;
+    if (a->minutes!= b->minutes)return a->minutes> b->minutes;
+    return a->seconds > b->seconds;
+}
+
+bool fram_get_latest_entry(FramRMS_t *out)
+{
+    if (!out) return false;
+
+    FramRMS_t current;
+    bool found = false;
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        uint32_t addr = FRAM_BASE_ADDR + i * sizeof(FramRMS_t);
+
+        FRAM_Read(addr, (uint8_t *)&current, sizeof(FramRMS_t));
+
+        /* Optionnel : ignorer entrée vide */
+        if (current.time.year == 0 &&
+            current.time.month == 0)
+        {
+            continue;
+        }
+
+        if (!found || rtc_is_newer(&current.time, &out->time))
+        {
+            *out = current;
+            found = true;
+        }
+    }
+
+    return found;
+}
 
 HAL_StatusTypeDef RTC_ReadTime(RTC_extern *rtc)
 {
@@ -368,5 +411,26 @@ void rtc_get_timestamp(char *buffer, RTC_extern *rtc)
              rtc->seconds);
 
 }
+bool is_same_minute(RTC_extern *a, RTC_extern *b)
+{
+    int ta = a->hours * 3600 + a->minutes * 60 + a->seconds;
+    int tb = b->hours * 3600 + b->minutes * 60 + b->seconds;
 
+    return abs(ta - tb) <= 120;
+}
+
+
+void fram_clear_top10(void)
+{
+    FramRMS_t empty;
+    memset(&empty, 0, sizeof(FramRMS_t));
+
+    for (uint8_t i = 0; i < 20; i++)
+    {
+        uint16_t addr = FRAM_BASE_ADDR + i * sizeof(FramRMS_t);
+        FRAM_Write(addr, (uint8_t *)&empty, sizeof(FramRMS_t));
+    }
+
+    log_message("[FRAM] TOP10 reset to 0\r\n");
+}
 

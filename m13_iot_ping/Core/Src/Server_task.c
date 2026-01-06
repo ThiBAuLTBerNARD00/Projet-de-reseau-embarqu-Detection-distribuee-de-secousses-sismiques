@@ -26,7 +26,6 @@ void StartServerTask(void const * argument)
 	ip_addr_t client_ip;
 	RTC_extern rtc;
 	LWIP_UNUSED_ARG(argument);
-	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	/* create a new TCP netconn */
 	conn = netconn_new(NETCONN_TCP);
 	if (!conn) {
@@ -67,19 +66,20 @@ void StartServerTask(void const * argument)
 	                        /* debug print */
                         log_message("TCP recv: %s\n", msg);
                         osDelay(30);
+                        RTC_ReadTime(&rtc);
                         if (strstr(msg, "data_request")) {
                             char txbuf[256];
                             float ax = rmsX;
                             float ay = rmsY;
                             float az = rmsZ;
-                            RTC_ReadTime(&rtc);
+
                             rtc_get_timestamp(ts, &rtc);
                             snprintf(txbuf, sizeof(txbuf),
-                                     "{\"type\":\"data_response\","
-                                     "\"id\":\"nucleo-01\","
-                                     "\"timestamp\":\"%s\","
-                                     "\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},"
-                                     "\"status\":\"normal\"}",
+                                     "{\"type\": \"data_response\","
+                                     "\"id\": \"nucleo-01\","
+                                     "\"timestamp\": \"%s\","
+                                     "\"acceleration\": {\"x\": %.3f,\"y\": %.3f,\"z\": %.3f},"
+                                     "\"status\": \"normal\"}",
 									 ts,ax, ay, az);
                             netconn_write(newconn, txbuf, strlen(txbuf), NETCONN_COPY);
                         }/* -------- DATA RESPONSE -------- */
@@ -88,7 +88,7 @@ void StartServerTask(void const * argument)
                         	FramRMS_t recep;
                             if (extract_data(msg, &recep))
                             {
-                            	if(recep.shake && event && (recep.time)){
+                            	if(recep.shake && event && is_same_minute(&recep.time,&rtc)){
                             		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, SET);
                             	}
                             	else{HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, RESET);}

@@ -18,8 +18,8 @@ void StartClientTask(void const * argument)
 {
   /* USER CODE BEGIN StartClientTask */
   /* Infinite loop */
-	osSemaphoreWait(SemaphoreMasterHandle, osWaitForever);
 	RTC_extern rtc;
+	FramRMS_t last;
 	for(;;)
  	{
 		if (ip_count == 0)
@@ -45,14 +45,23 @@ void StartClientTask(void const * argument)
                 float ay = rmsY;
                 float az = rmsZ;
                 RTC_ReadTime(&rtc);
-                rtc_get_timestamp(ts, &rtc);
-                const char *status = (event) ? "secousse" : "normal";
-                snprintf(txbuf, sizeof(txbuf),"{\"type\":\"data_response\","
-                		"\"id\":\"nucleo-01\","
-                		"\"timestamp\":\"%s\","
-                		"\"acceleration\":{\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},"
-                		"\"status\":\"%s\"}",
-						ts,ax, ay, az,status);
+                if (!fram_get_latest_entry(&last))
+                {
+                	log_message("[CLIENT] FRAM vide ou invalide\r\n");
+                	netconn_close(conn);
+                	netconn_delete(conn);
+                	osDelay(1000);
+                	continue;
+                }
+                rtc_get_timestamp(ts, &last.time);
+
+                const char *status = (last.shake) ? "secousse" : "normal";
+                snprintf(txbuf, sizeof(txbuf),"{\"type\": \"data\","
+                		"\"id\": \"nucleo-01\","
+                		"\"timestamp\": \"%s\","
+                		"\"acceleration\": {\"x\":%.3f,\"y\":%.3f,\"z\":%.3f},"
+                		"\"status\": \"%s\"}",
+						ts,last.rms_x, last.rms_y, last.rms_z,status);
 				netconn_write(conn, txbuf, strlen(txbuf), NETCONN_COPY);
 				log_message("[CLIENT] Sending : %s... à %s\r\n",txbuf,ipaddr_ntoa(&server_ip));
 			}
