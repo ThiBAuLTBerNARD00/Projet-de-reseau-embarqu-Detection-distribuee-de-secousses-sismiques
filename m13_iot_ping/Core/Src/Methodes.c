@@ -308,10 +308,10 @@ void fram_update_top10(float new_x, float new_y, float new_z, RTC_extern *t, boo
         uint16_t addr = FRAM_BASE_ADDR + weakest_idx * FRAM_NODE_SIZE;
         FRAM_Write(addr, (uint8_t*)&newNode, sizeof(FramRMS_t));
 
-        log_message("[FRAM] TOP10 update idx=%d X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
+        /*log_message("[FRAM] TOP10 update idx=%d X=%.3f Y=%.3f Z=%.3f @ %02u:%02u:%02u\r\n",
                     weakest_idx,
                     new_x, new_y, new_z,
-                    t->hours, t->minutes, t->seconds);
+                    t->hours, t->minutes, t->seconds);*/
     }
 }
 
@@ -425,7 +425,7 @@ void fram_clear_top10(void)
     FramRMS_t empty;
     memset(&empty, 0, sizeof(FramRMS_t));
 
-    for (uint8_t i = 0; i < 20; i++)
+    for (uint8_t i = 0; i < 30; i++)
     {
         uint16_t addr = FRAM_BASE_ADDR + i * sizeof(FramRMS_t);
         FRAM_Write(addr, (uint8_t *)&empty, sizeof(FramRMS_t));

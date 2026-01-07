@@ -34,9 +34,9 @@ extern osMessageQId messageQueueHandle;
 #define SAMPLE_RATE     100     // 100 Hz
 #define RMS_WINDOW      SAMPLE_RATE   // 1 seconde = 100 échantillons
 #define MA_WINDOW       10            // moyenne glissante 100 ms
-#define TCP_SERVER_PORT     1234
-#define UDP_LISTEN_PORT     1234   /* port sur lequel on écoute les broadcasts */
-#define UDP_BROADCAST_PORT  1234
+#define TCP_SERVER_PORT     12345
+#define UDP_LISTEN_PORT     12345   /* port sur lequel on écoute les broadcasts */
+#define UDP_BROADCAST_PORT  12345
 #define MAX_IPS 10
 extern char broadcast_ip_list[MAX_IPS][16];
 extern uint8_t ip_count;
